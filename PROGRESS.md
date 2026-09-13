@@ -37,5 +37,19 @@ Session log. Read at session start alongside `DESIGN.md`, `CLAUDE.md`, `FAILURES
   protection); use the public alias.
 - `vercel link` wrote a `.env.local` (gitignored) into the worktree; treat it like any secret
   file and delete it before removing the worktree.
-- **Next:** merge `scaffold` → `main` (ask), then start worktrees `data`, `pipeline`, `ui`,
-  `llm` in parallel (DESIGN.md §10).
+- Merged to `main` (`d2a2bb8`), scaffold worktree removed (its `.env.local` deleted first).
+
+## 2026-09-12 — Parallel feature worktrees (`data`, `pipeline`, `ui`, `llm`)
+
+Four agents, one per worktree, all branched from `d2a2bb8`. They do not commit or edit this file
+or `FEATURES.json`; the integrator reviews, re-runs their tests, records evidence, and merges.
+
+- **data — merged.** `backend/taxonomy.py` (42 vendors + aliases, `normalize`/`resolve`,
+  `KNOWN_UNKNOWN`), `backend/data/` (generator, 3 JSON files, README with the planted-scenario
+  table), `tests/test_data.py` (38 tests). Deviations accepted: usage noise ±3% (±1.5% in Sep) so
+  no unplanted September charge crosses the 2σ gate; two Gusto vendors (payroll vs fee); wire fees
+  carry the wire's counterparty; Cooley LLP is `usage`/`irregular` quarterly wires. Key numbers:
+  Anthropic Aug $21,625.54 → Sep $34,600.86 (1.60×); Pinecone $2,487.30 → $6,512.80; trailing Aug
+  spend ≈ $486K so 1% ≈ $4.9K. The pipeline must not fit growth on `irregular` vendors.
+- Design amended on `main`: 12-month history, cardholders 34 → 42, Pinecone amounts, no prepaid in
+  the data, integrator owns the scoreboard (decision log).

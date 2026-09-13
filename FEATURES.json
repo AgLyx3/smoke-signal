@@ -24,6 +24,17 @@
       ],
       "status": "passing",
       "evidence": "2026-09-12: vercel dev -L: /api/health 200 {ok,pandas 3.0.5}, POST /api/run 200, GET / 200 with probe page. npm run types regenerated api-types.ts (483 lines), tsc --noEmit clean, next build clean. Prod https://rho-cost-signal.vercel.app: first /api/health 200 in 0.23 s, warm 0.10 s; browser shows both probes (40 ms / 43 ms). Cold start recorded in PROGRESS.md."
+    },
+    {
+      "id": "data-synthetic",
+      "area": "data",
+      "description": "Deterministic Lumen Labs dataset in Rho's transaction schema: 12 months of history plus inject-1 and inject-2, with every DESIGN.md §5 scenario planted, and a vendor taxonomy with descriptor aliases.",
+      "verify": [
+        "`cd backend && uv run pytest tests/test_data.py` passes: regenerating into a temp dir is byte-identical to the committed JSON; planted numbers hold (Anthropic Sep = 1.55–1.65× Aug, Pinecone one Aug charge ≈ $2,500 and one Sep ≈ $6,500, Loom last charge 2026-07-06, Figma $990 → $1,210, Vanta 2025-10-12 $18,000, Notion seats 40 → 58); schema sanity (Rho enum types, negative debits, integer minor units, unique ids, posted_at null iff pending).",
+        "Breaking a planted constant (ANTHROPIC_SEP_MULTIPLIER 1.60 → 1.30) makes the suite exit 1 both before and after regeneration; restoring it returns to green with identical file hashes."
+      ],
+      "status": "passing",
+      "evidence": "2026-09-12: agent run 38 passed; deliberate-break runs exited 1 (byte-identity test, then the Anthropic ratio test); restored → 38 passed, SHA-256 unchanged. Integrator re-ran `uv run pytest tests/test_data.py -q` on the branch: 38 passed in 0.74 s. Rows: history 2,484 / inject-1 51 / inject-2 181. Aug 2026 spend $485,951 (payroll $325,444)."
     }
   ]
 }

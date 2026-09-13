@@ -55,6 +55,11 @@ to a demo build and records what changed.
 | pandas + numpy only | statsmodels, Prophet | 6 monthly points per vendor; lighter cold start |
 | State in `localStorage`; Postgres specified in §9, not built | Postgres now | Keeps the build lean |
 | Worktree per feature | One branch | Parallel streams |
+| 12 months of history, not 6 | 6 months | So an annual renewal (Vanta, Oct) falls inside the demo window; the generator cost is nil |
+| Pinecone $2.5K → $6.5K (not $1.0K → $2.4K) | PRD's $2.4K example | At $500K/mo spend, $2.4K is 0.5%, below the 1% materiality bar; the demo needs it to alert |
+| No prepaid purchases in the synthetic data | Include a $50K credit purchase | Prepaid detection is static in this build; a round prepaid charge would make the live pipeline false-alert |
+| Cardholders 34 → 42, tracking headcount 38 → 46 | 15 cardholders | The headcount proxy (A3) is only honest if most employees hold cards |
+| Parallel feature agents do not edit `FEATURES.json` / `PROGRESS.md`; the integrator records their evidence | Each agent edits the scoreboard | Four branches editing one JSON array conflict on every merge |
 
 ## 4. Architecture
 
@@ -79,15 +84,23 @@ vercel.json: services {web: frontend/, api: backend/ main:app}; rewrite /api/(.*
 
 ## 5. Data and scenarios
 
-- **Company:** Lumen Labs, Series A AI company. Headcount 38 → 46 (hiring wave in month 4),
-  ~$500K/mo spend, ~40 vendors, 15 cardholders, 3 teams. Operating checking + Rho credit.
-- **History (6 months):** semi-monthly Gusto payroll ACH stepping up with the hiring wave; usage
+- **Company:** Lumen Labs, Series A AI company. Headcount 38 → 46 (hiring wave in June 2026),
+  ~$500K/mo spend (~65% payroll), ~40 vendors, cardholders 34 → 42 (most employees hold a Rho
+  card, so the headcount proxy tracks headcount), 3 teams. Operating checking + Rho credit.
+- **History (12 months, 2025-09-01 → 2026-08-31;** 12 rather than 6 so an annual renewal falls
+  inside the demo window): semi-monthly Gusto payroll ACH stepping up with the hiring wave; usage
   vendors (Anthropic, OpenAI, AWS, Modal) on smooth growth; fixed SaaS; seat-based tools that
   grow with headcount; annual contracts; employee card spend; one offsite spike that reverts;
   descriptor variants ("ANTHROPIC* API" / "Anthropic PBC"); excluded money movement
   (repayments, internal transfers, treasury). Pinecone's first invoice lands in the last month.
-- **Inject 1 (alerts):** Anthropic's monthly invoice ~60% above its ~15%/mo trend; Pinecone's
-  second invoice ($1.0K → $2.4K) confirms recurrence and triggers the ask.
+- **Inject 1 (alerts, 2026-09-01 → 09-05):** Anthropic's monthly invoice ~60% above its
+  ~15%/mo trend (Aug ≈ $22K, so the impact ≈ $10K ≈ 2% of spend); Pinecone's second invoice
+  ($2.5K → $6.5K, ≈ 1.3% of spend) confirms recurrence and triggers the ask. No prepaid credit
+  purchases anywhere in the data: prepaid handling is shown statically, and a round prepaid
+  charge in the data would make the live pipeline false-alert.
+- **Stage semantics:** `history` = history.json, as of 2026-08-31; `inject-1` = history +
+  inject-1.json, as of 2026-09-05; `inject-2` = all three files, as of 2026-09-30. Each file is a
+  Rho-style envelope `{"transactions": [...]}`.
 - **Inject 2 (monthly report):** rest of the month. Both issues show as ongoing, not re-alerted;
   plus Figma price creep, a seat tool growing faster than headcount, a stopped vendor, an
   upcoming renewal.
