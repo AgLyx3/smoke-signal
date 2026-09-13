@@ -420,7 +420,11 @@ def test_fees_are_context_only():
 
 
 def test_unknown_vendor_defaults_until_hook_or_override():
-    rows = company() + monthly("PINECONE SYSTEMS", {6: 800, 7: 1000, 8: 2400}, memo="vector db")
+    rows = (
+        company()
+        + monthly("PINECONE SYSTEMS", {6: 800, 7: 1000, 8: 2400}, memo="vector db")
+        + monthly("TINY TOOL", {m: 6 for m in range(1, 9)})  # recurring but far below the report floor
+    )
     v = next(v for v in run(rows).vendors if v.vendor == "Pinecone Systems")
     assert (v.cost_type, v.category, v.cost_type_source) == ("fixed", "Software", "default")
 
@@ -436,7 +440,10 @@ def test_unknown_vendor_defaults_until_hook_or_override():
     facts = seen["Pinecone Systems"]
     assert facts.monthly_amounts == {"2026-06": 800, "2026-07": 1000, "2026-08": 2400}
     assert facts.cadence == "monthly" and facts.sample_memos == ["vector db"]
-    assert "Anthropic" not in seen and "Uber Trip" in seen  # only unknown recurring vendors reach the hook
+    # Only unknown recurring vendors that have reached the report floor (0.1% of trailing spend,
+    # ~$112 here) go to the hook: Uber's ~$250/mo does, a $6/mo tool does not, Anthropic is known.
+    assert "Anthropic" not in seen and "Uber Trip" in seen and "Tiny Tool" not in seen
+    assert next(v for v in r.vendors if v.vendor == "Tiny Tool").cost_type_source == "default"
 
     r = run(rows, classify_unknown=hook, overrides=[Override(vendor="pinecone systems", cost_type="headcount")])
     v = next(v for v in r.vendors if v.vendor == "Pinecone Systems")

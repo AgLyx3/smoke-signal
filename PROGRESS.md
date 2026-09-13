@@ -86,7 +86,25 @@ or `FEATURES.json`; the integrator reviews, re-runs their tests, records evidenc
   warm with the expected five findings. Production rehearsal in the browser pane: all three steps,
   the ask → override → re-run, and "Open since Sep 5" on both issues in the monthly report. The
   main checkout is now `vercel link`ed (`.vercel/` and a `.env.local`, both gitignored).
-- **Next:** live Claude. User exports `ANTHROPIC_API_KEY` → `uv run python scripts/smoke_llm.py`
-  (≤ 6 calls) → user runs `npx vercel env add ANTHROPIC_API_KEY production` → redeploy (ask) →
-  confirm `X-Narration: claude` on the prod URL and that Pinecone Systems arrives classified.
-  Before the demo: hit the prod URL once to warm it, and Reset demo in `/settings`.
+## 2026-09-12 — Live Claude and polish (worktree `polish`)
+
+- Key exported by the user (`~/.zshrc`; note the agent's shell is non-interactive zsh, so
+  `source ~/.zshrc` is needed before a command that must see it) and added to the Vercel project.
+  `smoke_llm.py`: 3 calls, classify 3.4 s, alerts 8.3 s, report 12.2 s, every number grounded.
+  Redeployed; production `/api/narrate` → `X-Narration: claude` in 6.3 s.
+- **Found on production:** `/api/run` took 20.9 s and classified nothing — all 26 unknown small
+  merchants went to Claude in one batch and hit the 20 s timeout. Fix: only unknown recurring
+  vendors whose spend has reached the report floor in some month go to the hook
+  (`apply_classifications(min_monthly_spend=report_floor_pct × trailing)`). Pinecone qualifies;
+  coffee shops do not. Same rule as the ask: classify when it starts to matter. Test added (a $6/mo
+  tool never reaches the hook).
+- Narration prompt: taxonomy is a rule, not an inference — Claude was writing "inferred from
+  taxonomy". Prompt now distinguishes taxonomy / inferred / not yet classified / confirmed.
+- **Playwright e2e** (`frontend/e2e/demo.spec.ts`, `npm run test:e2e`, base URL from
+  `E2E_BASE_URL`, default production): two tests, 2 passed on prod in 1.1 min. First run caught
+  a real problem: an LLM-classified "O Reilly Media" $49 price change appeared next to Figma's,
+  because "always report price changes on classified vendors" plus classify-everything = noise.
+  The classification floor removes it.
+- **Next:** merge `polish` (ask), redeploy (ask), rerun `npm run test:e2e` on prod and confirm
+  Pinecone Systems arrives classified as usage-scaling by Claude (the ask then reads "scales with
+  usage. Right?"). Before the demo: open the prod URL once to warm it, then Reset demo.

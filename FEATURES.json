@@ -11,9 +11,7 @@
     "Update this file in the same change that implements the feature, not at session end."
   ],
   "statuses": ["pending", "in_progress", "passing", "failing", "blocked", "deferred"],
-  "blockers": {
-    "anthropic_key_unset": "ANTHROPIC_API_KEY is not exported in the shell (nor set on the Vercel project), so no live Claude call can run; narration serves templates and unknown vendors stay 'default'."
-  },
+  "blockers": {},
   "features": [
     {
       "id": "scaffold-services",
@@ -68,9 +66,8 @@
       "verify": [
         "With ANTHROPIC_API_KEY exported: `cd backend && uv run python scripts/smoke_llm.py` prints classifications with confidence, alert and report text, per-call latency, and 'grounded' for every item; then in the demo, POST /api/narrate responds with X-Narration: claude."
       ],
-      "status": "blocked",
-      "blocked_by": "anthropic_key_unset",
-      "evidence": ""
+      "status": "passing",
+      "evidence": "2026-09-12 (key exported): smoke_llm.py made 3 live calls — classify 4 vendors 3.4 s (Pinecone usage/AI & inference/high, Datadog usage/high, Twilio usage/high, NIMBLEWAY fixed/low), alerts 8.3 s, report 12.2 s; source=claude, templated=[] (every number grounded). Production after `vercel env add` + redeploy: POST /api/narrate → X-Narration: claude in 6.3 s."
     },
     {
       "id": "ui-slack-demo",
@@ -93,6 +90,17 @@
       ],
       "status": "passing",
       "evidence": "2026-09-12 local (vercel dev -L, browser pane): all of step 1 observed, page text captured. Production (https://rho-cost-signal.vercel.app, deploy 3ea4bca): /api/health 0.24 s cold; POST /api/run inject-1 0.81 s cold / 0.63 s warm with the five expected findings; browser: Load history → report; New charges → both alerts; 'No, it's usage-based' → confirmation line + re-run; Month closes → two 'Open since Sep 5' items and 'Renewal coming up' present. Narration source was template (no key)."
+    },
+    {
+      "id": "e2e-playwright",
+      "area": "demo",
+      "description": "Scripted end-to-end test (Playwright) of the presenter flow against a running deployment: three steps, the ask/override, month-end carry-over, reload persistence, settings override row, two-click reset; asserts no horizontal overflow at every step.",
+      "verify": [
+        "`cd frontend && npm run test:e2e` (production URL by default; `E2E_BASE_URL=http://localhost:3100` for vercel dev) → 2 passed.",
+        "A deliberately broken expectation (e.g. 'Open since Sep 5' count 3) fails the run."
+      ],
+      "status": "passing",
+      "evidence": "2026-09-12 against https://rho-cost-signal.vercel.app with live Claude: 2 passed in 1.1 min (43.2 s + 19.6 s). The first run failed on a real strict-mode ambiguity (two 'Price change' rows: Figma and an LLM-classified O'Reilly Media at $49) — evidence that classifying every small unknown vendor lets 'always report price changes' leak noise; fixed by the classification floor and `.first()`."
     }
   ]
 }

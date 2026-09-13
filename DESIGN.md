@@ -153,8 +153,11 @@ vercel.json: services {web: frontend/, api: backend/ main:app}; rewrite /api/(.*
    (volume = charge-count component, price = mean-charge component, `who` when one cardholder
    carries ≥ 60% of the increase), confidence High (≥ 6 obs, σ ≤ 0.15) / Med (≥ 3) / Low.
 9. **Classification precedence:** user override > taxonomy > Claude hook > default (`fixed`,
-   "Software", source `default`). The hook sees only unknown recurring vendors, is called once per
-   batch, caches per process, and returns `{}` on any failure so the vendor stays `default`.
+   "Software", source `default`). The hook sees only unknown recurring vendors whose spend has
+   reached the report floor in some month (classification, like the ask, happens when a vendor
+   starts to matter, and it keeps one batch inside the request timeout: 26 small merchants in one
+   call took > 20 s on Vercel), is called once per batch, caches per process, and returns `{}` on
+   any failure so the vendor stays `default`.
 10. **Ask when it matters:** an alert on a vendor whose source is not `taxonomy` or `user` carries
     the cost-type question. The answer re-runs detection with the override; narration text is not
     re-requested (facts and chips update, prose stays).

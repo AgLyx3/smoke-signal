@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test:e2e": "playwright test",
     "types": "(cd ../backend && uv run python -c 'import json, main; print(json.dumps(main.app.openapi()))') > openapi.json && openapi-typescript openapi.json -o src/lib/api-types.ts"
   },
   "dependencies": {
@@ -15,6 +16,7 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

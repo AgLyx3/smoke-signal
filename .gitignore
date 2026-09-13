@@ -32,3 +32,7 @@ __pycache__/
 
 # dumped from the FastAPI OpenAPI; regenerate with `npm run types` in frontend/
 frontend/openapi.json
+
+# playwright
+frontend/test-results/
+frontend/playwright-report/

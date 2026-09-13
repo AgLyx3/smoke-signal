@@ -55,9 +55,16 @@ def apply_classifications(
     overrides: list[Override],
     classify_unknown: ClassifyHook | None,
     taxonomy,
+    min_monthly_spend: float = 0.0,
 ) -> None:
-    """Priority: user override > taxonomy > hook result > default. Mutates stats in place."""
-    unknown = [s for s in stats.values() if not s.known and s.recurring]
+    """Priority: user override > taxonomy > hook result > default. Mutates stats in place.
+    Only unknown recurring vendors that have reached `min_monthly_spend` in some month go to the
+    hook: classification, like the ask, happens when a vendor starts to matter, and it keeps the
+    batch small enough to answer inside the request."""
+    unknown = [
+        s for s in stats.values()
+        if not s.known and s.recurring and max(s.monthly_total.values(), default=0.0) >= min_monthly_spend
+    ]
     if classify_unknown and unknown:
         results = classify_unknown([_vendor_facts(s) for s in unknown]) or {}
         for s in unknown:
@@ -125,7 +132,6 @@ def run_pipeline(
     spend = resolve_vendors(filter_spend(df), taxonomy)
     spend = spend[spend["date"].dt.date <= as_of] if len(spend) else spend
     stats = build_vendor_stats(spend)
-    apply_classifications(stats, overrides, classify_unknown, taxonomy)
 
     eval_month = _month_of(as_of)
     complete = _is_month_end(as_of)
@@ -134,6 +140,9 @@ def run_pipeline(
     eval_headcount = headcount.get(eval_month if complete else last_complete, 0)
     totals = total_spend_by_month(spend)
     trailing = trailing_monthly_spend(totals, eval_month)
+    apply_classifications(
+        stats, overrides, classify_unknown, taxonomy, min_monthly_spend=config.report_floor_pct * trailing
+    )
     first_month = min(totals) if totals else None
     ctx = EvalContext(
         as_of=as_of,
