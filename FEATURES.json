@@ -12,5 +12,18 @@
   ],
   "statuses": ["pending", "in_progress", "passing", "failing", "blocked", "deferred"],
   "blockers": {},
-  "features": []
+  "features": [
+    {
+      "id": "scaffold-services",
+      "area": "infra",
+      "description": "Next.js frontend and FastAPI backend deploy as one Vercel project via Services; /api/* reaches FastAPI with the full path; frontend TS types are generated from the Pydantic contract.",
+      "verify": [
+        "`npx vercel dev -L --listen 3100` at the repo root starts both services; GET localhost:3100/api/health returns {ok:true,pandas:<version>} and GET localhost:3100/ renders the probe page showing both API responses.",
+        "In frontend/, `npm run types` regenerates src/lib/api-types.ts from the live FastAPI OpenAPI, and `npx tsc --noEmit` passes against it.",
+        "On the production deploy, GET <url>/api/health returns 200 with the pandas version and GET <url>/ shows both probes; the cold-start latency of the first /api/health call is recorded in PROGRESS.md."
+      ],
+      "status": "passing",
+      "evidence": "2026-09-12: vercel dev -L: /api/health 200 {ok,pandas 3.0.5}, POST /api/run 200, GET / 200 with probe page. npm run types regenerated api-types.ts (483 lines), tsc --noEmit clean, next build clean. Prod https://rho-cost-signal.vercel.app: first /api/health 200 in 0.23 s, warm 0.10 s; browser shows both probes (40 ms / 43 ms). Cold start recorded in PROGRESS.md."
+    }
+  ]
 }
