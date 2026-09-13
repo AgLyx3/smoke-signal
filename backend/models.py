@@ -113,15 +113,37 @@ class Findings(BaseModel):
     window_start: date
     window_end: date
     trailing_monthly_spend: float
+    prior_monthly_spend: float | None = Field(
+        default=None, description="Spend in the month before the last full month, for the report intro"
+    )
     headcount_proxy: int = Field(description="Distinct cardholders in the window")
     findings: list[Finding]
     vendors: list[VendorSummary]
     category_totals: dict[str, float]
 
 
+class VendorFacts(BaseModel):
+    """What the classifier sees for a vendor the taxonomy does not know."""
+
+    vendor: str
+    monthly_amounts: list[float]
+    cadence: str
+    sample_descriptors: list[str]
+    sample_memos: list[str]
+
+
+class Classification(BaseModel):
+    cost_type: CostType
+    category: str
+    confidence: Confidence
+
+
 class NarrateRequest(BaseModel):
     findings: Findings
     mode: Literal["alerts", "report"]
+    open_issues: list[OpenIssue] = Field(
+        default=[], description="Issues already alerted on; their vendors go under 'Needs attention' in reports"
+    )
 
 
 class AlertText(BaseModel):
