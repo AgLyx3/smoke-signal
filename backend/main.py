@@ -1,7 +1,7 @@
 from datetime import date
 
 import pandas as pd
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 
 from models import (
     DEFAULT_CONFIG,
@@ -56,6 +56,20 @@ def run(req: RunRequest) -> Findings:
 
 
 @app.post("/api/narrate", response_model=NarrateResponse)
-def narrate(req: NarrateRequest) -> NarrateResponse:
-    # Scaffold stub; the llm worktree replaces this.
-    return NarrateResponse()
+def narrate(req: NarrateRequest, response: Response) -> NarrateResponse:
+    # Imports kept local so this hunk touches nothing another worktree edits.
+    import logging
+
+    import anthropic
+
+    from llm.client import BudgetExceededError, MissingAPIKeyError
+    from llm.narrate import narrate_result, template_response
+
+    try:
+        result = narrate_result(req.findings, req.mode, open_issues=req.open_issues)
+    except (anthropic.APIError, MissingAPIKeyError, BudgetExceededError) as e:
+        logging.getLogger("cost_signals.llm").warning("narrate: %s: %s; serving templates", type(e).__name__, e)
+        response.headers["X-Narration"] = "template"
+        return template_response(req.findings, req.mode, req.open_issues)
+    response.headers["X-Narration"] = result.source
+    return result.response

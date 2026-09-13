@@ -115,7 +115,7 @@ class VendorFacts(BaseModel):
 class Classification(BaseModel):
     cost_type: CostType
     category: str
-    confidence: float = Field(ge=0, le=1)
+    confidence: Confidence
 
 
 class VendorSummary(BaseModel):
@@ -133,6 +133,9 @@ class Findings(BaseModel):
     window_start: date
     window_end: date
     trailing_monthly_spend: float
+    prior_monthly_spend: float | None = Field(
+        default=None, description="Spend in the month before the last full month, for the report intro"
+    )
     headcount_proxy: int = Field(description="Distinct cardholders in the window")
     findings: list[Finding]
     vendors: list[VendorSummary]
@@ -142,6 +145,9 @@ class Findings(BaseModel):
 class NarrateRequest(BaseModel):
     findings: Findings
     mode: Literal["alerts", "report"]
+    open_issues: list[OpenIssue] = Field(
+        default=[], description="Issues already alerted on; their vendors go under 'Needs attention' in reports"
+    )
 
 
 class AlertText(BaseModel):
