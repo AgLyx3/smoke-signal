@@ -168,13 +168,18 @@ or `FEATURES.json`; the integrator reviews, re-runs their tests, records evidenc
 - e2e: the presenter test gained a thread step; first run opened the wrong thread because
   `getByRole('button', {name: 'Reply in thread'})` also matched the report items' aria-label —
   exact match now. 1 passed locally.
+- Merged and deployed (`9eebeba`). Production: e2e 2 passed (51.7 s + 19.1 s); `/api/ask`
+  "Which cardholders?" on Pinecone → "Marcus Chen … on the Eng — API & Infra card" in 2.3 s,
+  `X-Narration: claude`. Scoreboard 10/10. No worktrees remain.
 
 ## Demo runbook
 
 1. Open https://rho-cost-signal.vercel.app once a few minutes before presenting (warms the
    functions and fills the classification cache); `/settings` → Reset demo.
 2. Load history (~7 s: pipeline + report narration) → New charges (~11 s: classification, two
-   alerts, Claude prose) → answer the Pinecone question → Month closes (~9 s).
+   alerts, Claude prose) → answer the Pinecone question → open *Reply in thread* on the Anthropic
+   card and click "Show me the charges" or "Why now and not last month?" (2–4 s) → Month closes
+   (~9 s). Settings → Connections shows the provider-key and runway opt-ins.
 3. If Claude is slow or down, cards still render from templates (`X-Narration: template`); the
    detection never depends on it.
 4. `cd frontend && npm run test:e2e` re-checks the whole flow on production in about a minute.
