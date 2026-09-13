@@ -1,6 +1,9 @@
 # Smoke Signal
-
 *Instead of "a charge crossed $1,000," it tells you when a charge is unusual for that vendor, material to your runway, and why. Before you ask.*
+[Live demo](https://smoke-signal-app.vercel.app)
+
+<img width="1207" height="739" alt="Screenshot 2026-09-13 at 7 49 00 PM" src="https://github.com/user-attachments/assets/530bc320-3e86-4bc2-a753-457f26f0e0cd" />
+
 
 **Smoke Signal** is a demo of a cost-signal layer for Rho. It learns each vendor's normal spend trajectory from transaction history, detects meaningful changes with deterministic statistics, classifies vendors by cost type (usage-scaling, fixed, headcount-scaling, annual, payroll), and explains each change in plain language. An alert fires only when a change is both unusual for that vendor and material relative to monthly spend, so the same rules work from seed through scale up. Claude classifies unknown vendors and writes the explanations; in this build it does not decide what fires.
 
