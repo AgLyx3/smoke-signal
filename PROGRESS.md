@@ -207,10 +207,34 @@ or `FEATURES.json`; the integrator reviews, re-runs their tests, records evidenc
   funding/refund/transfer stop counting as cash in, and the answer is not re-asked. Demo data:
   the $200K Globex wire (Jul 15) → "funding" moves runway 25.2 → 21.5 months. "Cash in" replaces
   "inflows" in the copy, with a note that it is receipts, not recognised revenue.
-- Suite 121, eval 24/24, tsc/lint/build clean, settings e2e 1 passed locally. **Awaiting the
-  user's approval to commit, merge and deploy.**
+- Suite 121, eval 24/24, tsc/lint/build clean, settings e2e 1 passed locally.
+- User approved in two steps: "commit and push" → `main` `66227bb`; then "Deploy" → production.
+  Verified on prod: e2e 2 passed (50.6 s + 20.3 s); `/api/run history` → runway 25.2, the
+  $200K Globex wire in `inflow_ask`; with `inflow_overrides` funding → runway 21.5, ask empty.
+  `cfo` worktree removed; no worktrees remain.
 
-## Demo runbook
+## Demo runbook (V1.1)
+
+Before: open https://rho-cost-signal.vercel.app once to warm it; `/settings` → Reset demo →
+Connections → Runway framing **on**, keep "Direct message to the founder" → back to the channel.
+
+1. **Load history** (~20 s): the First look; point at "12 months, 40 recurring vendors, only posts
+   when something moves against its own trend"; Loom stopped, Notion per-head. Do not scroll on.
+2. The red **1** on Apps → Cost Signals: "runway is owner-level, it went to my DM". Open it: runway
+   25.2 mo on $9.8M across both Rho accounts, net burn $387K, ~$1.2M idle ≈ $3.8K/mo in Treasury;
+   then the $200K wire question → **No, it's funding** → 25.2 → 21.5 with nothing else asked.
+3. Back to the channel → **New charges** (~12 s): Anthropic off its trend (2.0%, alert), Pinecone
+   new and inferred → **Yes**; the pointer "Runway impact sent by direct message"; open the DM for
+   ≈ 2.3 and ≈ 1.6 weeks ("only when it's at least a week").
+4. **Reply in thread** on Anthropic → "Why now and not last month?" (~5 s); optionally "Show me the
+   charges". Close.
+5. **Month closes** (~12 s): both issues still open, not re-alerted; Vanta, Figma, Notion, Loom
+   below; the DM got no new treasury pitch (idle cash 1.6 months of burn is not news).
+6. **Settings**: thresholds by cost type, classifications, Connections (provider key, runway with
+   its destination, buffer and yield). Close on: nothing asks the founder for a plan or a budget.
+
+Safety: cards render from templates if Claude is late; chips send immediately, so click them on
+purpose. `cd frontend && npm run test:e2e` re-checks everything on production in ~1.2 min.
 
 1. Open https://rho-cost-signal.vercel.app once a few minutes before presenting (warms the
    functions and fills the classification cache); `/settings` → Reset demo.
