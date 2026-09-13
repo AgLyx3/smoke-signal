@@ -67,7 +67,7 @@
         "With ANTHROPIC_API_KEY exported: `cd backend && uv run python scripts/smoke_llm.py` prints classifications with confidence, alert and report text, per-call latency, and 'grounded' for every item; then in the demo, POST /api/narrate responds with X-Narration: claude."
       ],
       "status": "passing",
-      "evidence": "2026-09-12 (key exported): smoke_llm.py made 3 live calls — classify 4 vendors 3.4 s (Pinecone usage/AI & inference/high, Datadog usage/high, Twilio usage/high, NIMBLEWAY fixed/low), alerts 8.3 s, report 12.2 s; source=claude, templated=[] (every number grounded). Production after `vercel env add` + redeploy: POST /api/narrate → X-Narration: claude in 6.3 s."
+      "evidence": "2026-09-12 (key exported): smoke_llm.py made 3 live calls — classify 4 vendors 3.4 s (Pinecone usage/AI & inference/high, Datadog usage/high, Twilio usage/high, NIMBLEWAY fixed/low), alerts 8.3 s, report 12.2 s; source=claude, templated=[] (every number grounded). Production after `vercel env add` + redeploy: POST /api/narrate → X-Narration: claude in 6.3 s. After removing `strict` from the tool schemas: classify 2.6 s, alerts 5.4 s, report 8.1 s, all grounded."
     },
     {
       "id": "ui-slack-demo",

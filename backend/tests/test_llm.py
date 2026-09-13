@@ -121,7 +121,7 @@ def test_classify_batches_five_vendors_in_one_call_and_parses():
     call = fake.calls[0]
     assert call["model"] == "claude-sonnet-5"
     assert call["tool_choice"] == {"type": "tool", "name": TOOL_NAME, "disable_parallel_tool_use": True}
-    assert call["tools"][0]["strict"] is True
+    assert "strict" not in call["tools"][0]  # strict decoding made latency scale with batch size; Pydantic validates instead
     for v in VENDORS:
         assert v in call["messages"][0]["content"]
     assert set(out) == set(VENDORS)

@@ -72,7 +72,6 @@ _ITEM = {
 ALERTS_TOOL: dict[str, Any] = {
     "name": ALERTS_TOOL_NAME,
     "description": "Record one alert card per finding.",
-    "strict": True,
     "input_schema": {
         "type": "object",
         "additionalProperties": False,
@@ -99,7 +98,6 @@ ALERTS_TOOL: dict[str, Any] = {
 REPORT_TOOL: dict[str, Any] = {
     "name": REPORT_TOOL_NAME,
     "description": "Record the report intro and one text per finding.",
-    "strict": True,
     "input_schema": {
         "type": "object",
         "additionalProperties": False,

@@ -105,6 +105,13 @@ or `FEATURES.json`; the integrator reviews, re-runs their tests, records evidenc
   a real problem: an LLM-classified "O Reilly Media" $49 price change appeared next to Figma's,
   because "always report price changes on classified vendors" plus classify-everything = noise.
   The classification floor removes it.
-- **Next:** merge `polish` (ask), redeploy (ask), rerun `npm run test:e2e` on prod and confirm
-  Pinecone Systems arrives classified as usage-scaling by Claude (the ask then reads "scales with
-  usage. Right?"). Before the demo: open the prod URL once to warm it, then Reset demo.
+- Merged and deployed (`2a93691`); e2e 2 passed on prod. **But `/api/run` still took 21 s and
+  classified nothing.** Reproduced locally with the key: the 10-vendor batch hit `APITimeoutError`
+  at 20 s. Timing matrix: 4 vendors 3.9 s; 5 → 10.8 s; 10 → 20.5 s; 10 with trimmed facts 20.3 s;
+  10 with thinking disabled 21.1 s; **10 without `strict` on the tool → 4.4 s.** Strict
+  (grammar-constrained) decoding was the cost, and it scales with output size. Removed `strict`
+  from the classify and both narrate tools; Pydantic validation and the grounding check were
+  already the real guard. Smoke after: classify 2.6 s, alerts 5.4 s, report 8.1 s, all grounded.
+- **Next:** merge (ask), redeploy (ask), e2e on prod, confirm Pinecone arrives `usage/llm` with the
+  ask reading "scales with usage. Right?", and `/api/run` well under 10 s. Before the demo: open
+  the prod URL once to warm it, then Reset demo.

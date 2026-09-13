@@ -46,7 +46,9 @@ TOOL_NAME = "classify_vendors"
 CLASSIFY_TOOL: dict[str, Any] = {
     "name": TOOL_NAME,
     "description": "Record a cost type, spend category and confidence for every vendor in the batch.",
-    "strict": True,
+    # No `strict`: grammar-constrained decoding made latency scale with batch size (4 vendors
+    # 3.9 s, 10 vendors 20 s; the same 10 without strict 4.4 s). Pydantic validates every entry
+    # and bad ones fall back, so strictness at the API buys nothing here.
     "input_schema": {
         "type": "object",
         "additionalProperties": False,

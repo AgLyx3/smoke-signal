@@ -161,9 +161,11 @@ vercel.json: services {web: frontend/, api: backend/ main:app}; rewrite /api/(.*
 10. **Ask when it matters:** an alert on a vendor whose source is not `taxonomy` or `user` carries
     the cost-type question. The answer re-runs detection with the override; narration text is not
     re-requested (facts and chips update, prose stays).
-11. **Claude settings:** `claude-sonnet-5`, tool-schema structured output, 20 s timeout, no
+11. **Claude settings:** `claude-sonnet-5`, tool-schema structured output **without `strict`**
+    (strict decoding made latency scale with batch size: 4 vendors 3.9 s, 5 → 10.8 s, 10 → 20 s,
+    the same 10 non-strict 4.4 s; Pydantic validates every entry instead), 20 s timeout, no
     retries; the SDK's `messages.create` exposes no `temperature`, so determinism rests on the
-    strict schema and the grounding check.
+    schema, the prompt and the grounding check.
 
 ## 7. UI
 
