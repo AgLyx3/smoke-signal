@@ -60,7 +60,7 @@ to a demo build and records what changed.
 | No prepaid purchases in the synthetic data | Include a $50K credit purchase | Prepaid detection is static in this build; a round prepaid charge would make the live pipeline false-alert |
 | Cardholders 34 → 42, tracking headcount 38 → 46 | 15 cardholders | The headcount proxy (A3) is only honest if most employees hold cards |
 | Parallel feature agents do not edit `FEATURES.json` / `PROGRESS.md`; the integrator records their evidence | Each agent edits the scoreboard | Four branches editing one JSON array conflict on every merge |
-| Renamed to **Smoke Signal** (2026-09-13): bot, repo `AgLyx3/smoke-signal`, site `smoke-signal.vercel.app`, tagline "Catch your runway burning before it does" | "Cost Signals" (what it is); Burn Signal; Runway Watch | User's pick: says what it does for the founder, catches the fire early, works as a bot name and a slug; "burning" stays in the tagline, not the name |
+| Renamed to **Smoke Signal** (2026-09-13): bot, repo `AgLyx3/smoke-signal`, site `smoke-signal-app.vercel.app`, tagline "Catch your runway burning before it does" | "Cost Signals" (what it is); Burn Signal; Runway Watch | User's pick: says what it does for the founder, catches the fire early, works as a bot name and a slug; "burning" stays in the tagline, not the name |
 
 ## 4. Architecture
 

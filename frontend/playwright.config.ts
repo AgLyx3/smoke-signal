@@ -12,7 +12,7 @@ export default defineConfig({
   retries: 0,
   reporter: [["list"]],
   use: {
-    baseURL: process.env.E2E_BASE_URL ?? "https://smoke-signal.vercel.app",
+    baseURL: process.env.E2E_BASE_URL ?? "https://smoke-signal-app.vercel.app",
     ...devices["Desktop Chrome"],
     viewport: { width: 1440, height: 900 },
     trace: "retain-on-failure",

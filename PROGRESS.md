@@ -32,7 +32,7 @@ Session log. Read at session start alongside `DESIGN.md`, `CLAUDE.md`, `FAILURES
   `/api/(.*)` → api, `/(.*)` → web.
 - **A5 exercised.** `vercel dev -L` runs both services locally (after upgrading uv from 0.6.16 to
   0.12.13, Vercel's CLI requires ≥ 0.9.25). Production deploy `rho-cost-signal` → Ready in 47 s.
-  https://smoke-signal.vercel.app: first `/api/health` 200 in 0.23 s (pandas 3.0.5 imported),
+  https://smoke-signal-app.vercel.app: first `/api/health` 200 in 0.23 s (pandas 3.0.5 imported),
   warm ~0.10 s; page and config 200. The `*-projects.vercel.app` alias 302s to SSO (deployment
   protection); use the public alias.
 - `vercel link` wrote a `.env.local` (gitignored) into the worktree; treat it like any secret
@@ -81,7 +81,7 @@ or `FEATURES.json`; the integrator reviews, re-runs their tests, records evidenc
   Anthropic +$9.6K (2.0%) and Pinecone Systems $6.5K (1.4%) with the ask; "No, it's usage-based" →
   override, re-run, tag CONFIRMED; month closes → both under Needs attention "Open since Sep 5",
   Vanta / Loom / Figma / Notion under Worth knowing. Narration was `template` throughout (no key).
-- Merged to `main` (`3ea4bca`), pushed, deployed: https://smoke-signal.vercel.app. Production
+- Merged to `main` (`3ea4bca`), pushed, deployed: https://smoke-signal-app.vercel.app. Production
   probes: `/api/health` 0.24 s cold / 0.10 s warm; `POST /api/run inject-1` 0.81 s cold / 0.63 s
   warm with the expected five findings. Production rehearsal in the browser pane: all three steps,
   the ask → override → re-run, and "Open since Sep 5" on both issues in the monthly report. The
@@ -240,13 +240,17 @@ or `FEATURES.json`; the integrator reviews, re-runs their tests, records evidenc
   `FEATURES.json` project name, and every URL/path in the docs. Historic entries above keep their
   original wording where the old name was a quoted decision. 126 tests, tsc/lint/build clean.
 - Infra (each step approved by the user): `gh repo rename smoke-signal` (origin updated),
-  `vercel project rename rho-cost-signal smoke-signal` (same project, env var kept; the site moves
-  to https://smoke-signal.vercel.app and the old alias is released), local folders moved to
+  Vercel project renamed to `smoke-signal-app` (same project, env var kept). `smoke-signal.vercel.app`
+  and `smokesignal.vercel.app` were already taken by other accounts, so the site is
+  https://smoke-signal-app.vercel.app, added as a project domain (`vercel domains add`; a plain
+  `vercel alias set` answered 302 behind deployment protection and would not survive the next
+  prod deploy). Renaming a project does not move its `*.vercel.app` domain, so the old
+  https://rho-cost-signal.vercel.app still serves production. Local folders moved to
   `~/Desktop/smoke-signal` and `~/Desktop/smoke-signal-worktrees`.
 
 ## Demo runbook (V1.1)
 
-Before: open https://smoke-signal.vercel.app once to warm it; `/settings` → Reset demo →
+Before: open https://smoke-signal-app.vercel.app once to warm it; `/settings` → Reset demo →
 Connections → Runway framing **on**, keep "Direct message to the founder" → back to the channel.
 
 1. **Load history** (~20 s): the First look; point at "12 months, 40 recurring vendors, only posts
@@ -267,7 +271,7 @@ Connections → Runway framing **on**, keep "Direct message to the founder" → 
 Safety: cards render from templates if Claude is late; chips send immediately, so click them on
 purpose. `cd frontend && npm run test:e2e` re-checks everything on production in ~1.2 min.
 
-1. Open https://smoke-signal.vercel.app once a few minutes before presenting (warms the
+1. Open https://smoke-signal-app.vercel.app once a few minutes before presenting (warms the
    functions and fills the classification cache); `/settings` → Reset demo.
 2. Load history (~7 s: pipeline + report narration) → New charges (~11 s: classification, two
    alerts, Claude prose) → answer the Pinecone question → open *Reply in thread* on the Anthropic

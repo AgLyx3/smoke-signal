@@ -23,7 +23,7 @@
         "On the production deploy, GET <url>/api/health returns 200 with the pandas version and GET <url>/ shows both probes; the cold-start latency of the first /api/health call is recorded in PROGRESS.md."
       ],
       "status": "passing",
-      "evidence": "2026-09-12: vercel dev -L: /api/health 200 {ok,pandas 3.0.5}, POST /api/run 200, GET / 200 with probe page. npm run types regenerated api-types.ts (483 lines), tsc --noEmit clean, next build clean. Prod https://smoke-signal.vercel.app: first /api/health 200 in 0.23 s, warm 0.10 s; browser shows both probes (40 ms / 43 ms). Cold start recorded in PROGRESS.md."
+      "evidence": "2026-09-12: vercel dev -L: /api/health 200 {ok,pandas 3.0.5}, POST /api/run 200, GET / 200 with probe page. npm run types regenerated api-types.ts (483 lines), tsc --noEmit clean, next build clean. Prod https://smoke-signal-app.vercel.app: first /api/health 200 in 0.23 s, warm 0.10 s; browser shows both probes (40 ms / 43 ms). Cold start recorded in PROGRESS.md."
     },
     {
       "id": "data-synthetic",
@@ -89,7 +89,7 @@
         "Same flow on the production URL after deploy, with the first call warmed."
       ],
       "status": "passing",
-      "evidence": "2026-09-12 local (vercel dev -L, browser pane): all of step 1 observed, page text captured. Production (https://smoke-signal.vercel.app, deploy 3ea4bca): /api/health 0.24 s cold; POST /api/run inject-1 0.81 s cold / 0.63 s warm with the five expected findings; browser: Load history → report; New charges → both alerts; 'No, it's usage-based' → confirmation line + re-run; Month closes → two 'Open since Sep 5' items and 'Renewal coming up' present. Narration source was template (no key)."
+      "evidence": "2026-09-12 local (vercel dev -L, browser pane): all of step 1 observed, page text captured. Production (https://smoke-signal-app.vercel.app, deploy 3ea4bca): /api/health 0.24 s cold; POST /api/run inject-1 0.81 s cold / 0.63 s warm with the five expected findings; browser: Load history → report; New charges → both alerts; 'No, it's usage-based' → confirmation line + re-run; Month closes → two 'Open since Sep 5' items and 'Renewal coming up' present. Narration source was template (no key)."
     },
     {
       "id": "e2e-playwright",
@@ -100,7 +100,7 @@
         "A deliberately broken expectation (e.g. 'Open since Sep 5' count 3) fails the run."
       ],
       "status": "passing",
-      "evidence": "2026-09-12 against https://smoke-signal.vercel.app with live Claude: 2 passed in 1.1 min (43.2 s + 19.6 s). The first run failed on a real strict-mode ambiguity (two 'Price change' rows: Figma and an LLM-classified O'Reilly Media at $49) — evidence that classifying every small unknown vendor lets 'always report price changes' leak noise; fixed by the classification floor and `.first()`."
+      "evidence": "2026-09-12 against https://smoke-signal-app.vercel.app with live Claude: 2 passed in 1.1 min (43.2 s + 19.6 s). The first run failed on a real strict-mode ambiguity (two 'Price change' rows: Figma and an LLM-classified O'Reilly Media at $49) — evidence that classifying every small unknown vendor lets 'always report price changes' leak noise; fixed by the classification floor and `.first()`."
     },
     {
       "id": "settings-connections",
