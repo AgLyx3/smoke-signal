@@ -218,7 +218,15 @@ vercel.json: services {web: frontend/, api: backend/ main:app}; rewrite /api/(.*
 ## 7. UI
 
 - `/`: Slack look-alike, channel `#spend-signals`, bot "Cost Signals". Presenter bar: *Load
-  history*, *New charges*, *Month closes*.
+  history*, *New charges*, *Month closes*, links to *Records* and *Settings*.
+- `/transaction-records` (added 2026-09-13, bare on purpose): the raw rows the pipeline reads, in
+  Rho's `/transactions` shape, plus the `/accounts` balance strip for the same beat. It follows
+  the presenter: the beat defaults to whatever the channel has loaded, every row carries the beat
+  that added it (`_beat`: history / inject-1 / inject-2), rows added by the current beat are
+  highlighted, and "Only what this beat added" shows the delta (2,484 / 51 / 181 rows). Filters:
+  account (click a balance), type, free text over counterparty, memo, cardholder, card, id; 100
+  rows a page, newest first; a click opens the raw JSON with signed minor units untouched.
+  Served by `GET /api/transactions` and `GET /api/accounts`.
 - **Alert card:** headline ($/mo impact, share of spend) → what moved → why (driver,
   confidence) → cost-type tag marked "inferred" → inline question when applicable → reactions
   (expected / investigating / not useful).

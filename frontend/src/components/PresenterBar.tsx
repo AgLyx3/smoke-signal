@@ -66,6 +66,9 @@ export function PresenterBar({
 
       <div className="ml-auto flex items-center gap-4 text-xs text-slate-400">
         {asOf && <span className="tabular-nums">As of {longDate(asOf)}</span>}
+        <Link href="/transaction-records" className="flex items-center gap-1 rounded px-2 py-1 text-slate-200 hover:bg-slate-800">
+          <span aria-hidden>▤</span> Records
+        </Link>
         <Link href="/settings" className="flex items-center gap-1 rounded px-2 py-1 text-slate-200 hover:bg-slate-800">
           <span aria-hidden>⚙</span> Settings
         </Link>

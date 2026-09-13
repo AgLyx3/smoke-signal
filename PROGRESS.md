@@ -207,8 +207,22 @@ or `FEATURES.json`; the integrator reviews, re-runs their tests, records evidenc
   funding/refund/transfer stop counting as cash in, and the answer is not re-asked. Demo data:
   the $200K Globex wire (Jul 15) → "funding" moves runway 25.2 → 21.5 months. "Cash in" replaces
   "inflows" in the copy, with a note that it is receipts, not recognised revenue.
-- Suite 121, eval 24/24, tsc/lint/build clean, settings e2e 1 passed locally. **Awaiting the
-  user's approval to commit, merge and deploy.**
+- Suite 121, eval 24/24, tsc/lint/build clean, settings e2e 1 passed locally. Shipped on the
+  user's "commit and push" then "Deploy" (`66227bb`); e2e 2 passed on production.
+
+## 2026-09-13 — Transaction records page (worktree `records`)
+
+- User: a bare screen showing what the transactions look like, the operating account, and tied
+  to the three beats so the delta is visible. Built `/transaction-records`: `GET /api/transactions`
+  (raw rows newest first, `_beat` tag per row, `by_beat` counts, filters q / type / account /
+  beat, paging capped at 500) and `GET /api/accounts` (the stage's balance snapshot). The page
+  follows the channel's loaded stage, highlights rows the current beat added, has "Only what this
+  beat added", an accounts strip that doubles as an account filter, and raw JSON per row.
+  Presenter bar gained a *Records* link. `tests/test_transactions_route.py` 5 tests; suite 126.
+- Answered on the way: the usage trend is log-linear (constant % growth, compounding), and it is a
+  baseline, not a forecast — decelerating or just-started vendors fit badly, few points make the
+  slope noisy (σ floor, ≥ 3 observations, confidence label), and a business-wide shift fires
+  several alerts rather than one. Calibration of predicted vs realised impact is the long-run check.
 
 ## Demo runbook
 
