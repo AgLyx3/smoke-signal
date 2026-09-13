@@ -1,0 +1,16 @@
+{
+  "project": "rho-cost-signal",
+  "spec": "DESIGN.md",
+  "updated": "2026-09-12",
+  "rules": [
+    "status starts at 'pending' and may ONLY become 'passing' after the verify steps were actually executed and observed to pass.",
+    "Code compiling, typechecking, or looking correct is NOT sufficient to mark 'passing'.",
+    "If a verify step cannot be run, set status 'blocked' and fill 'blocked_by'. Never guess.",
+    "'deferred' means out of scope by explicit user decision. Do not implement deferred features.",
+    "Run `node scripts/features.mjs` to see the current tally. Never hand-edit the tally.",
+    "Update this file in the same change that implements the feature, not at session end."
+  ],
+  "statuses": ["pending", "in_progress", "passing", "failing", "blocked", "deferred"],
+  "blockers": {},
+  "features": []
+}
