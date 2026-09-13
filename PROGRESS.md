@@ -136,6 +136,20 @@ or `FEATURES.json`; the integrator reviews, re-runs their tests, records evidenc
   (≈ $1.2K/mo here; Loom at 0.3% stays, Figma/Notion always report), and
   `Findings.recurring_vendor_count` counts known recurring vendors plus unknown ones above the
   floor (40 of 64), which is what the intros now quote. 108 backend tests, eval 24/24.
+- Merged and deployed (`e984a1d`); production history run: `first_run`, "Sep 2025 – Aug 2026",
+  40 recurring vendors, Loom + Notion only; e2e 2 passed.
+
+## 2026-09-13 — Settings → Connections (worktree `connections`)
+
+- User review of the demo: nowhere for a founder to add a provider admin key or opt into runway
+  framing. Added a **Connections** section to `/settings`: provider usage keys (Anthropic, OpenAI;
+  prefix-validated, only `••••last4` stored, the key never reaches storage or the network) and a
+  runway-framing toggle with a destination choice (DM to a named founder by default, or the
+  channel) — per the user, the interaction is not wired: channel copy is unchanged. State lives in
+  `cost-signals:connections`, clears on Reset. e2e settings test extended (masking, storage check,
+  toggle, reload persistence).
+- Thread chat approved by the user; designed next (DESIGN.md §6.12 / §7) and built in its own
+  worktree.
 
 ## Demo runbook
 

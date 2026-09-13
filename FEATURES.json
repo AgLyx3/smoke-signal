@@ -101,6 +101,18 @@
       ],
       "status": "passing",
       "evidence": "2026-09-12 against https://rho-cost-signal.vercel.app with live Claude: 2 passed in 1.1 min (43.2 s + 19.6 s). The first run failed on a real strict-mode ambiguity (two 'Price change' rows: Figma and an LLM-classified O'Reilly Media at $49) — evidence that classifying every small unknown vendor lets 'always report price changes' leak noise; fixed by the classification floor and `.first()`."
+    },
+    {
+      "id": "settings-connections",
+      "area": "frontend",
+      "description": "Settings → Connections: opt-in provider usage keys (Anthropic, OpenAI; masked tail stored, never the key) and a runway-framing toggle with its own destination (founder DM by default, or the channel). State persists, clears on Reset; not wired into detection or narration by decision.",
+      "verify": [
+        "In /settings: enter a key with the right prefix → row shows Connected and ••••<last4>; localStorage `cost-signals:connections` contains the last four characters and not the key; a wrong prefix shows an inline error and stores nothing.",
+        "Toggle Runway framing → the delivery radios appear with 'Direct message to the founder' checked and a recipient select; choose the channel; reload → both the connection and the choice persist; Reset demo clears them.",
+        "Covered by `npm run test:e2e` (settings test) and no horizontal overflow."
+      ],
+      "status": "passing",
+      "evidence": "2026-09-13: e2e settings test extended with the connections steps (key masked, key not in storage, runway toggle → radios, channel choice survives reload) — 1 passed locally against vercel dev (24.4 s); full suite rerun on production after deploy, see PROGRESS.md. Browser pane screenshot of the section reviewed."
     }
   ]
 }

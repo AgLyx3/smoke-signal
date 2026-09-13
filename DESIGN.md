@@ -179,6 +179,15 @@ vercel.json: services {web: frontend/, api: backend/ main:app}; rewrite /api/(.*
   $ impact. No cap.
 - `/settings`: per-type threshold table, vendor classification overrides, *Reset demo*. Save
   returns to `/` and re-runs.
+- `/settings` → **Connections** (added 2026-09-13; the PRD's progressive-disclosure ladder made
+  visible): two opt-ins, each stating the capability it unlocks. *Provider usage keys*: a
+  read-only Anthropic or OpenAI admin key, per vendor, unlocking a per-model / per-key breakdown
+  in that vendor's alerts; only the masked tail (`••••1234`) is ever stored, never the key.
+  *Runway framing*: a toggle to state alerts in weeks of runway, with its own destination
+  (direct message to a named founder by default, or the channel) because runway is owner-level
+  information. Both persist immediately and clear on Reset. **Not wired** into detection or
+  narration in this build: alerts keep their current wording; the destination choice is
+  recorded, not acted on.
 
 ## 8. Evaluation
 

@@ -19,6 +19,28 @@ export type StageResult = { findings: Findings; narration: NarrateResponse };
 /** An open issue plus the stage that raised it, so reruns of that same stage do not dedupe against it. */
 export type OpenIssueRecord = OpenIssue & { stage: Stage };
 
+export type ProviderId = "anthropic" | "openai";
+
+/** Opt-in connections from Settings. Only a masked label is ever kept: the key itself is never
+ *  written to storage (in production it would be encrypted server-side, read-only scope). */
+export type ProviderConnection = { connected: boolean; label: string | null; connectedAt: string | null };
+
+export type RunwayDelivery = "dm" | "channel";
+
+export type Connections = {
+  providers: Record<ProviderId, ProviderConnection>;
+  runway: { enabled: boolean; delivery: RunwayDelivery; recipient: string };
+};
+
+export const DEFAULT_CONNECTIONS: Connections = {
+  providers: {
+    anthropic: { connected: false, label: null, connectedAt: null },
+    openai: { connected: false, label: null, connectedAt: null },
+  },
+  // Runway is owner-level information, so the default destination is a DM to the founder.
+  runway: { enabled: false, delivery: "dm", recipient: "Dana K." },
+};
+
 export type DemoState = {
   stage: DemoStage;
   config: Config | null;
@@ -28,6 +50,7 @@ export type DemoState = {
   messages: ChannelMessage[];
   results: Partial<Record<Stage, StageResult>>;
   pendingRerun: string | null;
+  connections: Connections;
 };
 
 const KEYS: Record<keyof DemoState, string> = {
@@ -39,6 +62,7 @@ const KEYS: Record<keyof DemoState, string> = {
   messages: `${PREFIX}messages`,
   results: `${PREFIX}results`,
   pendingRerun: `${PREFIX}pendingRerun`,
+  connections: `${PREFIX}connections`,
 };
 
 export const DEFAULT_STATE: DemoState = {
@@ -50,6 +74,7 @@ export const DEFAULT_STATE: DemoState = {
   messages: [],
   results: {},
   pendingRerun: null,
+  connections: DEFAULT_CONNECTIONS,
 };
 
 function readKey<T>(key: string, fallback: T): T {

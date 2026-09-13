@@ -71,6 +71,23 @@ test("settings shows the override and reset clears the channel", async ({ page }
   const pineconeRow = page.getByRole("row", { name: /Pinecone Systems/ });
   await expect(pineconeRow.getByText("Override")).toBeVisible();
 
+  // Connections: a provider key keeps only its masked tail; runway framing has its own destination.
+  await expect(page.getByText("Connections", { exact: true })).toBeVisible();
+  await page.getByLabel("Anthropic admin key").fill("sk-ant-demo-not-a-real-key-000000001234");
+  await page.getByRole("button", { name: "Connect" }).first().click();
+  await expect(page.getByText("••••1234")).toBeVisible();
+  await expect(page.getByText("Connected", { exact: true })).toBeVisible();
+  const stored = await page.evaluate(() => localStorage.getItem("cost-signals:connections") ?? "");
+  expect(stored).toContain("1234");
+  expect(stored).not.toContain("sk-ant-demo"); // the key itself is never stored
+  await page.getByRole("switch", { name: "Runway framing" }).click();
+  await expect(page.getByRole("radio", { name: /Direct message to the founder/ })).toBeChecked();
+  await page.getByRole("radio", { name: /#spend-signals channel/ }).check();
+  await page.reload();
+  await expect(page.getByText("••••1234")).toBeVisible();
+  await expect(page.getByRole("radio", { name: /#spend-signals channel/ })).toBeChecked();
+  await noHorizontalOverflow(page);
+
   // Reset is a two-click confirm.
   await page.getByRole("button", { name: "Reset demo", exact: true }).click();
   await page.getByRole("button", { name: "Yes, reset demo" }).click();

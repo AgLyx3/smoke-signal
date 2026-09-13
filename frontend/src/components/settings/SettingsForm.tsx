@@ -7,6 +7,7 @@ import { loadConfigForSettings, saveSettings } from "@/lib/demo-actions";
 import { COST_TYPE_LABEL, SOURCE_LABEL, money, pct } from "@/lib/format";
 import { getState, resetDemo, useDemoState } from "@/lib/store";
 import { COST_TYPES, type Config, type CostType, type Stage, STAGES } from "@/lib/types";
+import { ConnectionsSection } from "./ConnectionsSection";
 
 type Draft = { config: Config; overrides: Record<string, CostType> };
 
@@ -254,11 +255,13 @@ export function SettingsForm() {
           )}
         </section>
 
+        <ConnectionsSection />
+
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {confirmReset ? (
               <>
-                <span className="text-sm text-ink-soft">Clears the transcript, thresholds, overrides and reactions.</span>
+                <span className="text-sm text-ink-soft">Clears the transcript, thresholds, overrides, reactions and connections.</span>
                 <button
                   type="button"
                   onClick={onReset}
