@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }) => {
 test("three presenter steps, the ask, and the month-end carry-over", async ({ page }) => {
   // 1. history -> a report with the two quiet items and nothing to alert on
   await page.getByRole("button", { name: "Load history" }).click();
-  await expect(page.getByText(/^Report · /)).toBeVisible();
+  await expect(page.getByText(/^(First look|Monthly report) · /)).toBeVisible();
   await expect(page.getByText("Nothing needs attention")).toBeVisible();
   await expect(page.getByText("Loom", { exact: true })).toBeVisible();
   await expect(page.getByText("Notion", { exact: true })).toBeVisible();
@@ -52,12 +52,12 @@ test("three presenter steps, the ask, and the month-end carry-over", async ({ pa
   // 4. the transcript survives a reload
   await page.reload();
   await expect(page.getByText("Open since Sep 5")).toHaveCount(2);
-  await expect(page.getByText(/^Report · /)).toHaveCount(2);
+  await expect(page.getByText(/^(First look|Monthly report) · /)).toHaveCount(2);
 });
 
 test("settings shows the override and reset clears the channel", async ({ page }) => {
   await page.getByRole("button", { name: "Load history" }).click();
-  await expect(page.getByText(/^Report · /)).toBeVisible();
+  await expect(page.getByText(/^(First look|Monthly report) · /)).toBeVisible();
   await page.getByRole("button", { name: "New charges" }).click();
   const usageButton = page.getByRole("button", { name: "No, it's usage-based" });
   await expect(page.getByText(/We're treating Pinecone Systems as/)).toBeVisible();

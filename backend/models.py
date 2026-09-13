@@ -32,7 +32,7 @@ class TypeThreshold(BaseModel):
 class Config(BaseModel):
     thresholds: dict[CostType, TypeThreshold]
     report_floor_pct: float = Field(
-        default=0.001,
+        default=0.0025,
         description="Below this share of trailing monthly spend a change is dropped from the report, unless it is "
         "a price change, per-head rise or renewal on a vendor whose cost type is confirmed or classified",
     )
@@ -133,10 +133,27 @@ class VendorSummary(BaseModel):
     growth_pct: float | None = None
 
 
+class Period(BaseModel):
+    """What a report is about. `first_run` spans all the history read on the first run; `month`
+    is the calendar month that closed (or is in progress). Distinct from the baseline window,
+    which is the fitting range and lives in `Findings.window_start/end`."""
+
+    kind: Literal["first_run", "month"]
+    label: str = Field(description='"Sep 2025 – Aug 2026" or "September 2026"')
+    start: date
+    end: date
+
+
 class Findings(BaseModel):
     stage: Stage
-    window_start: date
+    window_start: date = Field(description="Start of the baseline (fitting) window, not the reporting period")
     window_end: date
+    period: Period | None = None
+    transaction_count: int | None = Field(default=None, description="Settled spend rows read, through window_end")
+    recurring_vendor_count: int | None = Field(
+        default=None, description="Recurring vendors whose spend reached the report floor in some month (the ones the reports talk about)"
+    )
+    data_start: date | None = Field(default=None, description="Earliest transaction date in the data")
     trailing_monthly_spend: float
     last_monthly_spend: float | None = Field(default=None, description="Total spend in the last full month")
     prior_monthly_spend: float | None = Field(

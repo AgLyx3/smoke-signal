@@ -84,15 +84,28 @@ def finding_facts(f: Finding, open_vendors: set[str] = frozenset()) -> dict[str,
 
 
 def window_facts(findings: Findings) -> dict[str, Any]:
+    p = findings.period
     facts: dict[str, Any] = {
         "stage": findings.stage,
+        # The reporting period is what the report is about; the baseline window is only the
+        # range each vendor's trend was fitted on.
+        "period_kind": p.kind if p else "month",
+        "period_label": p.label if p else None,
+        "period_start": p.start.isoformat() if p else None,
+        "period_end": p.end.isoformat() if p else findings.window_end.isoformat(),
+        "baseline_window_start": findings.window_start.isoformat(),
+        "baseline_window_end": findings.window_end.isoformat(),
         "window_start": findings.window_start.isoformat(),
         "window_end": findings.window_end.isoformat(),
+        "transaction_count": findings.transaction_count,
+        "data_start": findings.data_start.isoformat() if findings.data_start else None,
         "trailing_monthly_spend": round(findings.trailing_monthly_spend, 2),
         "last_monthly_spend": findings.last_monthly_spend,
         "prior_monthly_spend": findings.prior_monthly_spend,
         "headcount_proxy_cardholders": findings.headcount_proxy,
-        "vendor_count": len(findings.vendors),
+        # The count the reports quote: recurring vendors big enough to matter, not every coffee shop.
+        "vendor_count": findings.recurring_vendor_count if findings.recurring_vendor_count is not None else len(findings.vendors),
+        "vendors_listed": len(findings.vendors),
         "finding_count": len(findings.findings),
         "category_totals": {k: round(v, 2) for k, v in findings.category_totals.items()},
     }

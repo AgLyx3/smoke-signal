@@ -14,6 +14,7 @@ from models import (
     Findings,
     OpenIssue,
     Override,
+    Period,
     VendorFacts,
     VendorSummary,
 )
@@ -32,6 +33,24 @@ ClassifyHook = Callable[[list[VendorFacts]], dict[str, Classification]]
 
 def _month_of(d: date) -> int:
     return d.year * 12 + d.month - 1
+
+
+def _month_name(m: int, short: bool = False) -> str:
+    y, mo = divmod(m, 12)
+    return f"{(calendar.month_abbr if short else calendar.month_name)[mo + 1]} {y}"
+
+
+def _period(stage: str, data_start: date | None, as_of: date, eval_month: int, complete: bool) -> Period:
+    """The first run reports on everything it read; later runs report on the calendar month."""
+    if stage == "history" and data_start is not None:
+        return Period(
+            kind="first_run",
+            label=f"{_month_name(_month_of(data_start), short=True)} – {_month_name(eval_month, short=True)}",
+            start=data_start,
+            end=as_of,
+        )
+    label = _month_name(eval_month) + ("" if complete else f" (through {as_of.strftime('%b')} {as_of.day})")
+    return Period(kind="month", label=label, start=date(as_of.year, as_of.month, 1), end=as_of)
 
 
 def _is_month_end(d: date) -> bool:
@@ -140,8 +159,13 @@ def run_pipeline(
     eval_headcount = headcount.get(eval_month if complete else last_complete, 0)
     totals = total_spend_by_month(spend)
     trailing = trailing_monthly_spend(totals, eval_month)
-    apply_classifications(
-        stats, overrides, classify_unknown, taxonomy, min_monthly_spend=config.report_floor_pct * trailing
+    floor = config.report_floor_pct * trailing
+    apply_classifications(stats, overrides, classify_unknown, taxonomy, min_monthly_spend=floor)
+    # The vendor count the reports quote: every known recurring vendor, plus unknown ones that
+    # have reached the floor (a coffee shop is not a "recurring vendor" to a founder).
+    above_floor = sum(
+        1 for s in stats.values()
+        if s.recurring and (s.known or max(s.monthly_total.values(), default=0.0) >= floor)
     )
     first_month = min(totals) if totals else None
     ctx = EvalContext(
@@ -182,10 +206,15 @@ def run_pipeline(
         category_totals[s.category] = round(category_totals.get(s.category, 0.0) + s.total(last_complete), 2)
     category_totals = {k: v for k, v in category_totals.items() if v != 0}
 
+    data_start = spend["date"].min().date() if len(spend) else None
     return Findings(
         stage=stage,
         window_start=ctx.window_start,
         window_end=as_of,
+        period=_period(stage, data_start, as_of, eval_month, complete),
+        transaction_count=int(len(spend)),
+        recurring_vendor_count=above_floor,
+        data_start=data_start,
         trailing_monthly_spend=round(trailing, 2),
         last_monthly_spend=round(totals[last_complete], 2) if last_complete in totals else None,
         prior_monthly_spend=round(totals[last_complete - 1], 2) if (last_complete - 1) in totals else None,

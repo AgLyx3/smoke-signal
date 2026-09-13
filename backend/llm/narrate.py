@@ -50,9 +50,18 @@ ALERTS_INSTRUCTIONS = (
 )
 
 REPORT_INSTRUCTIONS = (
-    "Write a monthly spend report. intro: one paragraph covering the window, trailing monthly "
-    "spend versus the prior month when prior_monthly_spend is present (otherwise do not "
-    "mention a prior month), and the headcount proxy stated as distinct cardholders. items: "
+    "Write a spend report. intro: one paragraph. If period_kind is 'first_run', this is the "
+    "first time the system has looked at this account: say so in the first person, state how "
+    "many months of transactions were read (period_label, transaction_count), how many "
+    "recurring vendors were found (vendor_count) and that each one's normal pattern was "
+    "learned, give the last full month's spend versus the prior month when both are present, "
+    "and end by saying that from now on it only posts when something moves against its own "
+    "trend. If period_kind is 'month', the report is about period_label (the month that "
+    "closed): lead with that month's spend (last_monthly_spend) versus the prior month when "
+    "prior_monthly_spend is present, and mention the baseline window "
+    "(baseline_window_start to baseline_window_end) only as the range each vendor's trend was "
+    "fitted on, never as the reporting period. Always state the headcount proxy as distinct "
+    "cardholders. items: "
     "one or two sentences per finding_id covering every finding in the facts, with the "
     "figures that matter for that kind: actual against expected and the impact, or the price "
     "move, or the missing charge, or the upcoming renewal. Decreases and missing charges are "

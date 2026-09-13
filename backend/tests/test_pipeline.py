@@ -164,12 +164,20 @@ def test_growth_break_material_alerts():
 
 
 def test_growth_break_below_materiality_reports():
-    amounts = trend(100, 0.15)
+    # Impact lands between the report floor (0.25%) and the alert bar (1%): a report line.
+    amounts = trend(300, 0.15)
     amounts[8] = round(1.6 * amounts[8], 2)
     r = run(company() + monthly("ANTHROPIC* API", amounts))
     (f,) = find(r, "Anthropic")
     assert f.kind == "growth_break" and f.route == "report"
-    assert 0 < f.impact_monthly < threshold(r)
+    assert DEFAULT_CONFIG.report_floor_pct * r.trailing_monthly_spend <= f.impact_monthly < threshold(r)
+
+
+def test_growth_break_under_the_report_floor_is_dropped():
+    amounts = trend(100, 0.15)  # the same break at a third of the size is under 0.25% of spend
+    amounts[8] = round(1.6 * amounts[8], 2)
+    r = run(company() + monthly("ANTHROPIC* API", amounts))
+    assert find(r, "Anthropic") == []
 
 
 def test_growth_break_in_partial_month_uses_the_invoice_that_arrived():
@@ -239,7 +247,7 @@ def test_new_unknown_vendor_material_alerts_and_asks_cost_type():
 
 
 def test_new_vendor_small_reports_without_ask():
-    r = run(company() + monthly("PINECONE SYSTEMS", {7: 100, 8: 240}))
+    r = run(company() + monthly("PINECONE SYSTEMS", {7: 300, 8: 500}))  # 0.45% of spend: floor < impact < alert bar
     (f,) = find(r, "Pinecone Systems")
     assert f.kind == "new_vendor" and f.route == "report" and f.ask_cost_type is False
 
@@ -440,10 +448,12 @@ def test_unknown_vendor_defaults_until_hook_or_override():
     facts = seen["Pinecone Systems"]
     assert facts.monthly_amounts == {"2026-06": 800, "2026-07": 1000, "2026-08": 2400}
     assert facts.cadence == "monthly" and facts.sample_memos == ["vector db"]
-    # Only unknown recurring vendors that have reached the report floor (0.1% of trailing spend,
-    # ~$112 here) go to the hook: Uber's ~$250/mo does, a $6/mo tool does not, Anthropic is known.
+    # Only unknown recurring vendors that have reached the report floor (0.25% of trailing spend,
+    # ~$280 here) in some month go to the hook: Pinecone does, Uber (peaks near $300) does, a
+    # $6/mo tool does not, and Anthropic is known. Those below the floor stay at "default".
     assert "Anthropic" not in seen and "Uber Trip" in seen and "Tiny Tool" not in seen
     assert next(v for v in r.vendors if v.vendor == "Tiny Tool").cost_type_source == "default"
+    assert r.recurring_vendor_count is not None and r.recurring_vendor_count < len(r.vendors)
 
     r = run(rows, classify_unknown=hook, overrides=[Override(vendor="pinecone systems", cost_type="headcount")])
     v = next(v for v in r.vendors if v.vendor == "Pinecone Systems")
@@ -496,6 +506,23 @@ def test_findings_summary_fields():
     assert "Uber Trip" in {v.vendor for v in r.vendors}  # unknown vendor keyed by taxonomy.normalize
     names = [v.vendor for v in r.vendors]
     assert names[0] == "Gusto" and names.index("Datadog") < names.index("Anthropic")
+
+
+def test_reporting_period_is_first_run_for_history_and_the_month_otherwise():
+    # The period is what the report is about; window_start stays the baseline fitting range.
+    first = run(two_breaks(), stage="history")
+    assert first.period is not None and first.period.kind == "first_run"
+    assert first.period.start == first.data_start and first.data_start is not None and first.data_start.month == 1
+    assert first.period.end == AS_OF and first.period.label == "Jan 2026 – Aug 2026"
+    assert first.window_start == date(2026, 2, 1)  # baseline window, unchanged
+    assert first.transaction_count is not None and 0 < first.transaction_count <= len(two_breaks())
+
+    month = run(two_breaks(), stage="inject-2")
+    assert month.period is not None and month.period.kind == "month"
+    assert (month.period.label, month.period.start, month.period.end) == ("August 2026", date(2026, 8, 1), AS_OF)
+
+    partial = run(two_breaks(), as_of=date(2026, 8, 5), stage="inject-1")
+    assert partial.period is not None and partial.period.label == "August 2026 (through Aug 5)"
 
 
 def test_empty_frame_gives_well_formed_empty_findings():

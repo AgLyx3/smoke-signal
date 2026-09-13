@@ -133,7 +133,8 @@ vercel.json: services {web: frontend/, api: backend/ main:app}; rewrite /api/(.*
    impact = −expected) ≥ `config[type].alert_pct` × trailing monthly spend, where trailing = mean
    of the last 3 complete months before the evaluated month (so inject-1 and inject-2 share a bar).
    `stopped`, `renewal` and `spike` never alert. Below the alert bar, a change must still clear
-   `config.report_floor_pct` (default 0.1% of monthly spend) to appear in the report, except price
+   `config.report_floor_pct` (default 0.25% of monthly spend, ≈ $1.2K at Lumen Labs; 0.1% let
+   $600 office-supply "trend breaks" through once Claude classified them) to appear in the report, except price
    changes, per-head rises and renewals on vendors whose cost type is confirmed or classified,
    which are always listed. Fees and payroll are context only, never findings.
 

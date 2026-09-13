@@ -122,7 +122,7 @@ export interface components {
             /**
              * Report Floor Pct
              * @description Below this share of trailing monthly spend a change is dropped from the report, unless it is a price change, per-head rise or renewal on a vendor whose cost type is confirmed or classified
-             * @default 0.001
+             * @default 0.0025
              */
             report_floor_pct: number;
         };
@@ -213,6 +213,7 @@ export interface components {
             /**
              * Window Start
              * Format: date
+             * @description Start of the baseline (fitting) window, not the reporting period
              */
             window_start: string;
             /**
@@ -220,6 +221,22 @@ export interface components {
              * Format: date
              */
             window_end: string;
+            period?: components["schemas"]["Period"] | null;
+            /**
+             * Transaction Count
+             * @description Settled spend rows read, through window_end
+             */
+            transaction_count?: number | null;
+            /**
+             * Recurring Vendor Count
+             * @description Recurring vendors whose spend reached the report floor in some month (the ones the reports talk about)
+             */
+            recurring_vendor_count?: number | null;
+            /**
+             * Data Start
+             * @description Earliest transaction date in the data
+             */
+            data_start?: string | null;
             /** Trailing Monthly Spend */
             trailing_monthly_spend: number;
             /**
@@ -301,6 +318,34 @@ export interface components {
              * @enum {string}
              */
             cost_type: "usage" | "fixed" | "headcount" | "annual" | "payroll";
+        };
+        /**
+         * Period
+         * @description What a report is about. `first_run` spans all the history read on the first run; `month`
+         *     is the calendar month that closed (or is in progress). Distinct from the baseline window,
+         *     which is the fitting range and lives in `Findings.window_start/end`.
+         */
+        Period: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "first_run" | "month";
+            /**
+             * Label
+             * @description "Sep 2025 – Aug 2026" or "September 2026"
+             */
+            label: string;
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
         };
         /** ReportItemText */
         ReportItemText: {

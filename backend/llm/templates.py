@@ -165,22 +165,53 @@ def report_item(f: dict[str, Any]) -> ReportItemText:
     return ReportItemText(finding_id=f["finding_id"], text=text + ongoing)
 
 
+def _month_word(iso: str) -> str:
+    y, m = iso[:4], int(iso[5:7])
+    return f"{['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][m]} {y}"
+
+
+def _months_between(start_iso: str, end_iso: str) -> int:
+    return (int(end_iso[:4]) - int(start_iso[:4])) * 12 + int(end_iso[5:7]) - int(start_iso[5:7]) + 1
+
+
 def report_intro(w: dict[str, Any], n_attention: int, n_worth: int) -> str:
     trailing = money(w["trailing_monthly_spend"])
-    if w.get("last_monthly_spend") is not None and "change_vs_prior_month" in w:
+    last = w.get("last_monthly_spend")
+    if last is not None and "change_vs_prior_month" in w:
         delta = w["change_vs_prior_month"]
         direction = "up" if delta > 0 else "down"
-        month = (
-            f"The last full month closed at {money(w['last_monthly_spend'])}, {direction} {money(abs(delta))} "
-            f"({pct(abs(w['change_vs_prior_month_pct']))}) from {money(w['prior_monthly_spend'])} the month before; "
-            f"the trailing three-month average is {trailing}. "
+        vs_prior = (
+            f", {direction} {money(abs(delta))} ({pct(abs(w['change_vs_prior_month_pct']))}) "
+            f"from {money(w['prior_monthly_spend'])} the month before"
         )
-    elif w.get("last_monthly_spend") is not None:
-        month = f"The last full month closed at {money(w['last_monthly_spend'])}; the trailing three-month average is {trailing}. "
     else:
-        month = f"Trailing monthly spend is {trailing}. "
+        vs_prior = ""
+    heads = f"{w['headcount_proxy_cardholders']} distinct cardholders, our headcount proxy"
+    counts = f"{n_attention} items need attention and {n_worth} are worth knowing."
+
+    if w.get("period_kind") == "first_run" and w.get("period_start"):
+        months = _months_between(w["period_start"], w["period_end"])
+        rows = f", {w['transaction_count']:,} transactions" if w.get("transaction_count") else ""
+        last_month = f" The last full month, {_month_word(w['baseline_window_end'])}, closed at {money(last)}{vs_prior}." if last is not None else ""
+        return (
+            f"First look at this account. I read {months} months of Rho transactions ({w['period_label']}{rows}), "
+            f"found {w['vendor_count']} recurring vendors and learned each one's normal pattern.{last_month} "
+            f"Trailing three-month spend is {trailing} with {heads}. {counts} "
+            f"From here on I only post when something moves against its own trend."
+        )
+
+    if w.get("period_kind") == "month" and w.get("period_label") and last is not None:
+        # Trends are fitted on the months strictly before the reported month.
+        y, m = int(w["period_start"][:4]), int(w["period_start"][5:7])
+        fit_end = f"{y - 1}-12" if m == 1 else f"{y}-{m - 1:02d}"
+        return (
+            f"{w['period_label']} closed at {money(last)}{vs_prior}. Each vendor is compared against its own "
+            f"{_month_word(w['baseline_window_start'])[:3]}–{_month_word(fit_end)[:3]} trend; "
+            f"the trailing three-month average is {trailing}, with {heads} across {w['vendor_count']} vendors. {counts}"
+        )
+
+    month = f"The last full month closed at {money(last)}{vs_prior}; " if last is not None else ""
     return (
-        f"Spend report for {w['window_start']} to {w['window_end']}. {month}"
-        f"{w['headcount_proxy_cardholders']} distinct cardholders in the window, our headcount proxy, across "
-        f"{w['vendor_count']} vendors. {n_attention} items need attention and {n_worth} are worth knowing."
+        f"Spend report through {w['period_end']}. {month}the trailing three-month average is {trailing}. "
+        f"{heads}, across {w['vendor_count']} vendors. {counts}"
     )

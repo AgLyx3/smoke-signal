@@ -21,7 +21,7 @@ export const MOCK_DEFAULT_CONFIG: Config = {
     annual: { alert_pct: 0.01, alerts: false },
     payroll: { alert_pct: 0.01, alerts: false },
   },
-  report_floor_pct: 0.001,
+  report_floor_pct: 0.0025,
 };
 
 const VENDORS: VendorSummary[] = [

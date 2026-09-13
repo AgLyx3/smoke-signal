@@ -117,6 +117,26 @@ or `FEATURES.json`; the integrator reviews, re-runs their tests, records evidenc
   "Data & tooling", ask shown), 0.57 s warm; `/api/narrate` → `X-Narration: claude` in 5.7 s;
   Playwright e2e 2 passed in 1.0 min. Polish worktree removed; no worktrees remain.
 
+## 2026-09-13 — Reporting period and first-run voice (worktree `report-period`)
+
+- User review: the report titles read "Feb – Aug" then "Mar – Sep". That was the **baseline
+  fitting window** leaking into the title and the narration; the monthly report is about
+  September, and the first report should say it is a first run over all 12 months.
+- `Findings.period` (`first_run` | `month`, label, start, end), `transaction_count`,
+  `data_start` added; `window_start/end` keep their meaning as the fitting range. Titles:
+  "First look · Sep 2025 – Aug 2026" and "Monthly report · September 2026"; subtitle names the
+  baseline range separately (fitted on the months before the reported month, so "Mar – Aug").
+- Template and Claude intros: first run in the first person ("I read 12 months of Rho
+  transactions … found N recurring vendors and learned each one's normal pattern … from here on I
+  only post when something moves against its own trend"); monthly leads with the month that
+  closed versus the prior month.
+- Reviewing the live first-run report showed two more things: Claude classifying Staples and
+  Amazon as usage-scaling let +$620/mo "trend breaks" through the 0.1% floor, and the intro
+  quoted "64 recurring vendors" (every coffee shop). `report_floor_pct` default → **0.25%**
+  (≈ $1.2K/mo here; Loom at 0.3% stays, Figma/Notion always report), and
+  `Findings.recurring_vendor_count` counts known recurring vendors plus unknown ones above the
+  floor (40 of 64), which is what the intros now quote. 108 backend tests, eval 24/24.
+
 ## Demo runbook
 
 1. Open https://rho-cost-signal.vercel.app once a few minutes before presenting (warms the

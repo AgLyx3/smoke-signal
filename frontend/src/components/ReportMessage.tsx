@@ -17,11 +17,32 @@ function fallbackText(f: Finding): string {
   return `${KIND_LABEL[f.kind]}: ${money(f.actual_monthly)} against ${money(f.baseline.expected_monthly)} expected.`;
 }
 
+// The title names the reporting period; the baseline window (window_start/end) is only the
+// range the trends were fitted on and goes in the subtitle.
 function reportTitle(findings: Findings): string {
-  const start = findings.window_start.slice(0, 7);
-  const end = findings.window_end.slice(0, 7);
-  if (start === end) return `Monthly report · ${monthYear(findings.window_end)}`;
-  return `Report · ${monthYear(findings.window_start)} – ${monthYear(findings.window_end)}`;
+  const p = findings.period;
+  if (p?.kind === "first_run") return `First look · ${p.label}`;
+  if (p) return `Monthly report · ${p.label}`;
+  return `Monthly report · ${monthYear(findings.window_end)}`;
+}
+
+function reportSubtitle(findings: Findings): string {
+  const p = findings.period;
+  const tail = `trailing spend ${money(findings.trailing_monthly_spend)}/mo · ${findings.headcount_proxy} cardholders`;
+  if (p?.kind === "first_run") {
+    const rows = findings.transaction_count ? `${findings.transaction_count.toLocaleString()} transactions · ` : "";
+    return `${longDate(p.start)} – ${longDate(p.end)} · ${rows}${tail}`;
+  }
+  // Trends are fitted on the months strictly before the reported month.
+  const fitEnd = p ? prevMonthIso(p.start) : findings.window_end;
+  const baseline = `baseline ${monthYear(findings.window_start)} – ${monthYear(fitEnd)}`;
+  return `${p ? `${longDate(p.start)} – ${longDate(p.end)}` : longDate(findings.window_end)} · ${baseline} · ${tail}`;
+}
+
+function prevMonthIso(iso: string): string {
+  const y = Number(iso.slice(0, 4));
+  const m = Number(iso.slice(5, 7));
+  return m === 1 ? `${y - 1}-12-01` : `${y}-${String(m - 1).padStart(2, "0")}-01`;
 }
 
 function Item({ f, text, openSince }: { f: Finding; text: string; openSince: string | undefined }) {
@@ -92,10 +113,7 @@ export function ReportMessage({
     <div className="mt-1 max-w-3xl overflow-hidden rounded-lg border border-slack-border bg-white">
       <div className="px-4 py-3">
         <div className="text-base font-bold">{reportTitle(findings)}</div>
-        <div className="text-xs text-slack-muted">
-          {longDate(findings.window_start)} – {longDate(findings.window_end)} · trailing spend{" "}
-          {money(findings.trailing_monthly_spend)}/mo · {findings.headcount_proxy} cardholders
-        </div>
+        <div className="text-xs text-slack-muted">{reportSubtitle(findings)}</div>
         {report && <p className="mt-2 text-[15px] leading-snug">{report.intro}</p>}
       </div>
 
