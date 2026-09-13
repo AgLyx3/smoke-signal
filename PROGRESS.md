@@ -81,5 +81,12 @@ or `FEATURES.json`; the integrator reviews, re-runs their tests, records evidenc
   Anthropic +$9.6K (2.0%) and Pinecone Systems $6.5K (1.4%) with the ask; "No, it's usage-based" →
   override, re-run, tag CONFIRMED; month closes → both under Needs attention "Open since Sep 5",
   Vanta / Loom / Figma / Notion under Worth knowing. Narration was `template` throughout (no key).
-- **Next:** merge `integrate` → `main` (ask), production deploy (ask), rehearse on the prod URL, then
-  the live-Claude smoke once `ANTHROPIC_API_KEY` is exported.
+- Merged to `main` (`3ea4bca`), pushed, deployed: https://rho-cost-signal.vercel.app. Production
+  probes: `/api/health` 0.24 s cold / 0.10 s warm; `POST /api/run inject-1` 0.81 s cold / 0.63 s
+  warm with the expected five findings. Production rehearsal in the browser pane: all three steps,
+  the ask → override → re-run, and "Open since Sep 5" on both issues in the monthly report. The
+  main checkout is now `vercel link`ed (`.vercel/` and a `.env.local`, both gitignored).
+- **Next:** live Claude. User exports `ANTHROPIC_API_KEY` → `uv run python scripts/smoke_llm.py`
+  (≤ 6 calls) → user runs `npx vercel env add ANTHROPIC_API_KEY production` → redeploy (ask) →
+  confirm `X-Narration: claude` on the prod URL and that Pinecone Systems arrives classified.
+  Before the demo: hit the prod URL once to warm it, and Reset demo in `/settings`.

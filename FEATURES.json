@@ -91,8 +91,8 @@
         "`npx vercel dev -L --listen 3100`: Load history → report with Loom stopped and Notion per-head only; New charges → Anthropic growth_break (+$9.6K, 2.0%) and Pinecone Systems new_vendor ($6.5K, 1.4%, ask shown); answering the ask re-runs and the tag reads confirmed; Month closes → both issues under Needs attention with 'Open since Sep 5', Vanta renewal, Figma, Notion, Loom under Worth knowing, nothing unplanned.",
         "Same flow on the production URL after deploy, with the first call warmed."
       ],
-      "status": "in_progress",
-      "evidence": "2026-09-12 local: all of step 1 observed in the browser pane against vercel dev (page text captured). Production rehearsal pending deploy."
+      "status": "passing",
+      "evidence": "2026-09-12 local (vercel dev -L, browser pane): all of step 1 observed, page text captured. Production (https://rho-cost-signal.vercel.app, deploy 3ea4bca): /api/health 0.24 s cold; POST /api/run inject-1 0.81 s cold / 0.63 s warm with the five expected findings; browser: Load history → report; New charges → both alerts; 'No, it's usage-based' → confirmation line + re-run; Month closes → two 'Open since Sep 5' items and 'Renewal coming up' present. Narration source was template (no key)."
     }
   ]
 }
