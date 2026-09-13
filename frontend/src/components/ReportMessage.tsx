@@ -1,5 +1,6 @@
 import { KIND_LABEL, issueKey, longDate, money, moneyCompact, monthYear, pct, shortDate } from "@/lib/format";
 import type { Finding, Findings, ReportText } from "@/lib/types";
+import { CashCard, type RunwayPrefs } from "./CashCard";
 
 const COLLAPSE_OVER = 5;
 
@@ -101,6 +102,7 @@ export function ReportMessage({
   openSince,
   onOpenThread,
   replyCount,
+  runway,
 }: {
   findings: Findings;
   report: ReportText | null;
@@ -108,7 +110,9 @@ export function ReportMessage({
   openSince: Map<string, string>;
   onOpenThread?: (findingId: string) => void;
   replyCount?: (findingId: string) => number;
+  runway?: RunwayPrefs;
 }) {
+  const showRunway = Boolean(runway?.enabled);
   const textById = new Map<string, string>();
   if (report) {
     report.needs_attention.forEach((t) => textById.set(t.finding_id, t.text));
@@ -142,6 +146,7 @@ export function ReportMessage({
         <div className="text-xs text-slack-muted">{reportSubtitle(findings)}</div>
         {report && <p className="mt-2 text-[15px] leading-snug">{report.intro}</p>}
       </div>
+      {showRunway && runway && <CashCard findings={findings} runway={runway} />}
 
       <div className="border-t border-slack-border px-4 py-3">
         <h4 className="text-[13px] font-bold uppercase tracking-wide text-ink">Needs attention</h4>

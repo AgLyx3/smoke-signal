@@ -83,6 +83,7 @@ export function MessageList({
           openSince={openSince}
           onOpenThread={(findingId) => onOpenThread(m.stage, findingId)}
           replyCount={replyCount}
+          runway={state.connections.runway}
         />
       );
     }
@@ -107,6 +108,7 @@ export function MessageList({
         onReact={(r) => onReact(finding.id, r)}
         onAnswer={(c) => onAnswer(finding.vendor, c)}
         onOpenThread={() => onOpenThread(m.stage, finding.id)}
+        runway={state.connections.runway}
         replyCount={replyCount(finding.id)}
         threadOpen={openThreadId === finding.id}
       />

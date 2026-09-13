@@ -21,6 +21,7 @@ from models import (
     RunRequest,
 )
 from pipeline import load_stage, run_pipeline
+from pipeline.cash import load_accounts
 from pipeline.evidence import build_evidence, prepare_spend
 
 log = logging.getLogger("cost_signals")
@@ -57,6 +58,7 @@ def run(req: RunRequest) -> Findings:
         taxonomy=taxonomy,
         classify_unknown=classify_unknown,
         stage=req.stage,
+        accounts=load_accounts(DATA_DIR, req.stage),
     )
 
 

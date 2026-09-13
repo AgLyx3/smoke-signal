@@ -101,6 +101,10 @@ vercel.json: services {web: frontend/, api: backend/ main:app}; rewrite /api/(.*
 - **Stage semantics:** `history` = history.json, as of 2026-08-31; `inject-1` = history +
   inject-1.json, as of 2026-09-05; `inject-2` = all three files, as of 2026-09-30. Each file is a
   Rho-style envelope `{"transactions": [...]}`.
+- **Accounts (added 2026-09-13):** `accounts.json` holds one balance snapshot per stage in Rho's
+  `/accounts` shape: Operating Checking ($2.35M → $1.905M), Rho Treasury (investment, $7.40M →
+  $7.42M) and the card balance (not cash). Only the bank can compute runway without asking the
+  founder anything; this is where that claim is demonstrated.
 - **Inject 2 (monthly report):** rest of the month. Both issues show as ongoing, not re-alerted;
   plus Figma price creep, a seat tool growing faster than headcount, a stopped vendor, an
   upcoming renewal.
@@ -182,6 +186,24 @@ vercel.json: services {web: frontend/, api: backend/ main:app}; rewrite /api/(.*
     question, 2–4 s; `X-Narration` reports `claude` or `template`. Threads persist per finding in
     `localStorage`; cardholder names are allowed in answers (synthetic data here; in production
     the thread lives in Rho's Owner/Admin-only Slack surface).
+13. **Cash position and runway (added 2026-09-13, the CFO seat).** From Rho's own accounts, no
+    input from the founder: inflows = average settled credits (`ach_credit`, `wire_in`,
+    `check_deposit`) over the three complete months before the evaluated month, the same window
+    as trailing spend; net burn = trailing spend − inflows; runway = (operating + treasury) ÷ net
+    burn; buffer = `buffer_months` (3) × net burn; idle cash = operating − buffer; treasury upside
+    = idle × APY (3.8%, stated assumption) ÷ 12; a shortfall is the top-up needed from treasury.
+    Every finding except renewals and spikes gets `runway_weeks_delta` = weeks of runway lost (or
+    gained) if its monthly change persists. All arithmetic, no LLM.
+    **Fatigue rules** (user, 2026-09-13: "these will create fatigue so they can't be on
+    everything"): runway appears on an alert only when the framing toggle is on **and** the delta
+    is ≥ 1 week, never on report lines; the treasury paragraph appears on the first look
+    (orientation) and afterwards only on news — a buffer shortfall, or idle cash ≥ 2 months of
+    net burn — otherwise a monthly report carries a one-line runway status. Delivery follows the
+    Settings choice (founder DM by default) and is shown as a label on the demo cards.
+    Inflows are cash receipts, not revenue: a `wire_in` from an investor and one from a customer
+    look the same in the transaction type; production needs inflow classification (customer /
+    investor / refund / transfer) with the same ask-when-it-matters pattern, and Rho's invoicing
+    endpoints for invoiced customers.
 
 ## 7. UI
 
@@ -198,6 +220,11 @@ vercel.json: services {web: frontend/, api: backend/ main:app}; rewrite /api/(.*
   "Why now and not last month?" / "Why isn't this an alert?", "What don't you know here?"), and a
   composer. Bot turns carry a source marker ("via Claude, grounded in this vendor's data" or
   "template answer").
+- **Runway and cash (Settings → Runway framing on):** alert headline gains "≈ 2.2 weeks of
+  runway" with "If this rate holds. Runway detail → DM to Dana K."; reports gain the cash card
+  (runway months, total cash = operating + treasury, net burn = spend − inflows, what the
+  operating balance above the buffer could earn in Rho Treasury) on the first look and on news,
+  else a one-line runway status. Buffer months and APY are editable next to the toggle.
 - `/settings`: per-type threshold table, vendor classification overrides, *Reset demo*. Save
   returns to `/` and re-runs.
 - `/settings` → **Connections** (added 2026-09-13; the PRD's progressive-disclosure ladder made

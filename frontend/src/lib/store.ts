@@ -29,7 +29,15 @@ export type RunwayDelivery = "dm" | "channel";
 
 export type Connections = {
   providers: Record<ProviderId, ProviderConnection>;
-  runway: { enabled: boolean; delivery: RunwayDelivery; recipient: string };
+  runway: {
+    enabled: boolean;
+    delivery: RunwayDelivery;
+    recipient: string;
+    /** Months of net burn to keep in operating checking (assumption, editable). */
+    bufferMonths: number;
+    /** Assumed Rho Treasury yield (assumption, editable). */
+    treasuryApy: number;
+  };
 };
 
 export const DEFAULT_CONNECTIONS: Connections = {
@@ -38,7 +46,7 @@ export const DEFAULT_CONNECTIONS: Connections = {
     openai: { connected: false, label: null, connectedAt: null },
   },
   // Runway is owner-level information, so the default destination is a DM to the founder.
-  runway: { enabled: false, delivery: "dm", recipient: "Dana K." },
+  runway: { enabled: false, delivery: "dm", recipient: "Dana K.", bufferMonths: 3, treasuryApy: 0.038 },
 };
 
 /** One turn in the clarification thread under a finding. */

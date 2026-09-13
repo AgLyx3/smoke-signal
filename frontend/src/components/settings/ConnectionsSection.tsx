@@ -5,7 +5,7 @@ import { type Connections, type ProviderId, type RunwayDelivery, setState, useDe
 
 // Opt-in connections, each one a named capability with a stated reason (PRD: progressive
 // disclosure of asks). These persist immediately; they are not part of the threshold draft.
-// Not wired into detection or narration in this build: the channel copy stays as it is.
+// Provider keys are recorded only; runway framing changes what the cards and reports show.
 
 const PROVIDERS: { id: ProviderId; name: string; prefix: string; placeholder: string }[] = [
   { id: "anthropic", name: "Anthropic", prefix: "sk-ant-", placeholder: "sk-ant-admin… (read-only)" },
@@ -185,8 +185,40 @@ export function ConnectionsSection() {
                     </select>
                   </label>
                 )}
+                <div className="flex flex-wrap items-center gap-4 pt-1">
+                  <label className="flex items-center gap-2">
+                    <span className="text-xs text-slack-muted">Keep in operating</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={24}
+                      step={0.5}
+                      value={runway.bufferMonths}
+                      onChange={(e) => setRunway({ bufferMonths: Math.max(0, Number(e.target.value) || 0) })}
+                      aria-label="Buffer months"
+                      className="w-16 rounded border border-[#bbb] px-2 py-1 text-right tabular-nums"
+                    />
+                    <span className="text-xs text-slack-muted">months of net burn</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <span className="text-xs text-slack-muted">Treasury yield</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={20}
+                      step={0.1}
+                      value={Number((runway.treasuryApy * 100).toFixed(2))}
+                      onChange={(e) => setRunway({ treasuryApy: Math.max(0, Number(e.target.value) || 0) / 100 })}
+                      aria-label="Treasury APY percent"
+                      className="w-16 rounded border border-[#bbb] px-2 py-1 text-right tabular-nums"
+                    />
+                    <span className="text-xs text-slack-muted">% APY (assumption)</span>
+                  </label>
+                </div>
                 <p className="text-xs text-slack-muted">
-                  Not wired into the channel copy in this build; alerts keep their current wording.
+                  When on, alerts say what a change costs in weeks of runway, and reports carry the cash position: total
+                  cash across both Rho accounts, net burn, runway, and what the operating balance above the buffer could
+                  earn in Rho Treasury.
                 </p>
               </fieldset>
             )}

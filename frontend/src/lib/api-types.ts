@@ -193,6 +193,62 @@ export interface components {
              */
             headcount_proxy?: number | null;
         };
+        /**
+         * CashPosition
+         * @description What the bank can say without asking: runway from total cash and net burn, and what the
+         *     operating balance allows. All arithmetic, assumptions stated.
+         */
+        CashPosition: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Operating Balance */
+            operating_balance: number;
+            /** Treasury Balance */
+            treasury_balance: number;
+            /** Total Cash */
+            total_cash: number;
+            /**
+             * Monthly Inflows
+             * @description Average settled inflows over the 3 complete months before the evaluated month
+             */
+            monthly_inflows: number;
+            /**
+             * Net Burn Monthly
+             * @description Trailing monthly spend minus monthly inflows, floored at 0
+             */
+            net_burn_monthly: number;
+            /** Runway Months */
+            runway_months: number | null;
+            /** Operating Months Of Burn */
+            operating_months_of_burn: number | null;
+            /** Buffer Months */
+            buffer_months: number;
+            /**
+             * Recommended Operating
+             * @description buffer_months × net burn
+             */
+            recommended_operating: number;
+            /**
+             * Sweep To Treasury
+             * @description Operating balance above the buffer, 0 if none
+             */
+            sweep_to_treasury: number;
+            /**
+             * Shortfall From Treasury
+             * @description Top-up needed to reach the buffer, 0 if none
+             */
+            shortfall_from_treasury: number;
+            /** Treasury Apy */
+            treasury_apy: number;
+            /**
+             * Treasury Upside Monthly
+             * @description sweep × APY / 12
+             */
+            treasury_upside_monthly: number;
+        };
         /** Config */
         Config: {
             /** Thresholds */
@@ -205,6 +261,18 @@ export interface components {
              * @default 0.0025
              */
             report_floor_pct: number;
+            /**
+             * Buffer Months
+             * @description Months of net burn to keep in operating checking
+             * @default 3
+             */
+            buffer_months: number;
+            /**
+             * Treasury Apy
+             * @description Assumed Rho Treasury yield, for the cash position
+             * @default 0.038
+             */
+            treasury_apy: number;
         };
         /** DriverShare */
         DriverShare: {
@@ -282,6 +350,11 @@ export interface components {
              * @description Evaluated calendar month, YYYY-MM
              */
             month?: string | null;
+            /**
+             * Runway Weeks Delta
+             * @description Weeks of runway lost (positive) or gained (negative) if this monthly change persists; None without a cash position or for one-offs
+             */
+            runway_weeks_delta?: number | null;
         };
         /** Findings */
         Findings: {
@@ -302,6 +375,7 @@ export interface components {
              */
             window_end: string;
             period?: components["schemas"]["Period"] | null;
+            cash?: components["schemas"]["CashPosition"] | null;
             /**
              * Transaction Count
              * @description Settled spend rows read, through window_end

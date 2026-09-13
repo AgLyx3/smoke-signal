@@ -125,6 +125,18 @@
       ],
       "status": "passing",
       "evidence": "2026-09-13: test_ask.py 6 passed (suite 114). Live via vercel dev: four questions answered as described (3.9 s, 3.0 s, 2.0 s; out-of-scope declined). e2e presenter test with the thread step: 1 passed locally in 45.8 s (first run caught a locator that matched the report items' 'Reply in thread about Loom' button — exact match now). Production rerun after deploy recorded in PROGRESS.md."
+    },
+    {
+      "id": "cash-position-runway",
+      "area": "demo",
+      "description": "CFO framing from Rho's own accounts: synthetic operating + treasury balances (data/accounts.json) → net burn (trailing spend − trailing inflows) → runway; per-finding runway_weeks_delta; a cash card with the treasury arithmetic (buffer months, APY as stated assumptions). Fatigue rules: runway on alerts only when ≥ 1 week; the treasury paragraph on the first look and then only on news (shortfall, or idle cash ≥ 2 months of burn); otherwise a one-line runway status.",
+      "verify": [
+        "`cd backend && uv run pytest tests/test_cash.py`: runway/sweep arithmetic on fixed inputs (21.7 mo, $1.0M sweep, upside $3,166.67/mo), shortfall case, inflow window (three complete months before the evaluated month, settled only), runway delta sign and size, renewals excluded, no accounts → no cash block.",
+        "`npm run test:e2e` settings test: with Runway framing on, an alert shows 'weeks of runway' and the delivery label, the report shows a Runway … months line mentioning Rho Treasury; off = today's copy.",
+        "Local check of the demo data: inject-2 → net burn ≈ $412K, runway 22.6 mo, operating 4.6 mo, sweep $669K (1.6 mo → status line, not the treasury paragraph); Anthropic ≈ 2.2 weeks, Pinecone ≈ 1.5 weeks, Loom −0.3 (hidden)."
+      ],
+      "status": "passing",
+      "evidence": "2026-09-13: test_cash.py 6 passed (suite 120); inject-2 cash block as listed; e2e settings test with the runway steps passed locally against vercel dev (see PROGRESS.md for the run and the production rerun)."
     }
   ]
 }

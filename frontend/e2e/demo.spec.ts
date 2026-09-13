@@ -102,6 +102,16 @@ test("settings shows the override and reset clears the channel", async ({ page }
   await expect(page.getByRole("radio", { name: /#spend-signals channel/ })).toBeChecked();
   await noHorizontalOverflow(page);
 
+  // Runway framing on: alerts state weeks of runway, reports carry the cash position.
+  await page.goto("/");
+  await expect(page.getByTestId("runway-weeks").first()).toContainText(/weeks? of runway/);
+  await expect(page.getByText("Runway detail → #spend-signals").first()).toBeVisible();
+  const cash = page.getByTestId("cash-position").first();
+  await expect(cash).toContainText(/Runway\s+\d+\.\d months/);
+  await expect(cash).toContainText(/Rho Treasury/);
+  await noHorizontalOverflow(page);
+  await page.goto("/settings");
+
   // Reset is a two-click confirm.
   await page.getByRole("button", { name: "Reset demo", exact: true }).click();
   await page.getByRole("button", { name: "Yes, reset demo" }).click();

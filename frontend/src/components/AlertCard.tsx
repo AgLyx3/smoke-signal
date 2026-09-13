@@ -14,6 +14,7 @@ import {
 } from "@/lib/format";
 import type { Reaction } from "@/lib/store";
 import type { AlertText, Confidence, CostType, Finding } from "@/lib/types";
+import { MIN_RUNWAY_WEEKS, type RunwayPrefs, runwayDeliveryLabel, weeksOfRunway } from "./CashCard";
 
 const CONFIDENCE_STYLE: Record<Confidence, string> = {
   high: "border-emerald-200 bg-emerald-50 text-emerald-800",
@@ -85,6 +86,7 @@ export function AlertCard({
   onOpenThread,
   replyCount = 0,
   threadOpen = false,
+  runway,
 }: {
   finding: Finding;
   text: AlertText | undefined;
@@ -98,8 +100,11 @@ export function AlertCard({
   onOpenThread?: () => void;
   replyCount?: number;
   threadOpen?: boolean;
+  runway?: RunwayPrefs;
 }) {
   const f = finding;
+  // Only when it is at least a week: a "0.2 weeks of runway" on every card would numb the phrase.
+  const showRunway = Boolean(runway?.enabled) && f.runway_weeks_delta != null && Math.abs(f.runway_weeks_delta) >= MIN_RUNWAY_WEEKS;
   // "llm" was inferred from the charges; "default" means nothing classified it yet. Both are
   // unconfirmed and get the amber marker; only a user answer is confirmed.
   const inferred = f.cost_type_source === "llm" || f.cost_type_source === "default";
@@ -120,8 +125,18 @@ export function AlertCard({
           <span className="text-base font-bold">{f.vendor}</span>
           <span className="text-base font-bold tabular-nums">{moneyCompact(f.impact_monthly)}</span>
           <span className="text-sm text-slack-muted">· {pct(f.impact_pct_of_spend, 1)} of monthly spend</span>
+          {showRunway && runway && (
+            <span className="text-sm font-semibold text-[#b45309]" data-testid="runway-weeks">
+              · {weeksOfRunway(f.runway_weeks_delta as number)}
+            </span>
+          )}
         </div>
         {text && <p className="mt-1 text-[15px] leading-snug">{text.headline}</p>}
+        {showRunway && runway && (
+          <p className="mt-1 text-[11px] text-slack-muted">
+            If this rate holds. {runwayDeliveryLabel(runway)}.
+          </p>
+        )}
       </div>
 
       <Section title="What moved">

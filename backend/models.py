@@ -36,6 +36,8 @@ class Config(BaseModel):
         description="Below this share of trailing monthly spend a change is dropped from the report, unless it is "
         "a price change, per-head rise or renewal on a vendor whose cost type is confirmed or classified",
     )
+    buffer_months: float = Field(default=3.0, description="Months of net burn to keep in operating checking")
+    treasury_apy: float = Field(default=0.038, description="Assumed Rho Treasury yield, for the cash position")
 
 
 DEFAULT_CONFIG = Config(
@@ -103,6 +105,9 @@ class Finding(BaseModel):
     escalation_of: str | None = Field(default=None, description="OpenIssue id this re-alert escalates")
     cardholders: list[str] = []
     month: str | None = Field(default=None, description="Evaluated calendar month, YYYY-MM")
+    runway_weeks_delta: float | None = Field(
+        default=None, description="Weeks of runway lost (positive) or gained (negative) if this monthly change persists; None without a cash position or for one-offs"
+    )
 
 
 class VendorFacts(BaseModel):
@@ -144,11 +149,32 @@ class Period(BaseModel):
     end: date
 
 
+class CashPosition(BaseModel):
+    """What the bank can say without asking: runway from total cash and net burn, and what the
+    operating balance allows. All arithmetic, assumptions stated."""
+
+    as_of: date
+    operating_balance: float
+    treasury_balance: float
+    total_cash: float
+    monthly_inflows: float = Field(description="Average settled inflows over the 3 complete months before the evaluated month")
+    net_burn_monthly: float = Field(description="Trailing monthly spend minus monthly inflows, floored at 0")
+    runway_months: float | None
+    operating_months_of_burn: float | None
+    buffer_months: float
+    recommended_operating: float = Field(description="buffer_months × net burn")
+    sweep_to_treasury: float = Field(description="Operating balance above the buffer, 0 if none")
+    shortfall_from_treasury: float = Field(description="Top-up needed to reach the buffer, 0 if none")
+    treasury_apy: float
+    treasury_upside_monthly: float = Field(description="sweep × APY / 12")
+
+
 class Findings(BaseModel):
     stage: Stage
     window_start: date = Field(description="Start of the baseline (fitting) window, not the reporting period")
     window_end: date
     period: Period | None = None
+    cash: CashPosition | None = None
     transaction_count: int | None = Field(default=None, description="Settled spend rows read, through window_end")
     recurring_vendor_count: int | None = Field(
         default=None, description="Recurring vendors whose spend reached the report floor in some month (the ones the reports talk about)"

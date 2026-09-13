@@ -1,0 +1,29 @@
+{
+  "_note": "Synthetic Rho account balances for Lumen Labs, in Rho's /accounts shape (minor units). One snapshot per demo stage, as of that stage's date. Operating checking drains by roughly net burn; treasury accrues.",
+  "snapshots": {
+    "history": {
+      "as_of": "2026-08-31",
+      "accounts": [
+        { "id": "36fe6b9d-6e6d-4582-aef9-c97a0fe8f576", "name": "Operating Checking", "account_type": "checking", "balance": { "amount": 235000000, "currency": "USD" } },
+        { "id": "8a1c2d3e-4f50-4617-8293-a4b5c6d7e8f9", "name": "Rho Treasury", "account_type": "investment", "balance": { "amount": 740000000, "currency": "USD" } },
+        { "id": "c0ffee00-1111-4222-8333-444455556666", "name": "Rho Card", "account_type": "credit", "balance": { "amount": -18250000, "currency": "USD" } }
+      ]
+    },
+    "inject-1": {
+      "as_of": "2026-09-05",
+      "accounts": [
+        { "id": "36fe6b9d-6e6d-4582-aef9-c97a0fe8f576", "name": "Operating Checking", "account_type": "checking", "balance": { "amount": 229000000, "currency": "USD" } },
+        { "id": "8a1c2d3e-4f50-4617-8293-a4b5c6d7e8f9", "name": "Rho Treasury", "account_type": "investment", "balance": { "amount": 740400000, "currency": "USD" } },
+        { "id": "c0ffee00-1111-4222-8333-444455556666", "name": "Rho Card", "account_type": "credit", "balance": { "amount": -4100000, "currency": "USD" } }
+      ]
+    },
+    "inject-2": {
+      "as_of": "2026-09-30",
+      "accounts": [
+        { "id": "36fe6b9d-6e6d-4582-aef9-c97a0fe8f576", "name": "Operating Checking", "account_type": "checking", "balance": { "amount": 190500000, "currency": "USD" } },
+        { "id": "8a1c2d3e-4f50-4617-8293-a4b5c6d7e8f9", "name": "Rho Treasury", "account_type": "investment", "balance": { "amount": 742300000, "currency": "USD" } },
+        { "id": "c0ffee00-1111-4222-8333-444455556666", "name": "Rho Card", "account_type": "credit", "balance": { "amount": -19800000, "currency": "USD" } }
+      ]
+    }
+  }
+}

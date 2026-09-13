@@ -170,7 +170,29 @@ or `FEATURES.json`; the integrator reviews, re-runs their tests, records evidenc
   exact match now. 1 passed locally.
 - Merged and deployed (`9eebeba`). Production: e2e 2 passed (51.7 s + 19.1 s); `/api/ask`
   "Which cardholders?" on Pinecone → "Marcus Chen … on the Eng — API & Infra card" in 2.3 s,
-  `X-Narration: claude`. Scoreboard 10/10. No worktrees remain.
+  `X-Narration: claude`. Scoreboard 10/10. No worktrees remain. Tagged `v1`.
+
+## 2026-09-13 — V1.1: cash position and runway (worktree `cfo`)
+
+- User direction: lean into the CFO seat — Rho holds the operating account and treasury, so say
+  what a change costs in runway and what the cash position allows, including what idle cash could
+  earn in Rho Treasury. And a fatigue rule: neither can be on everything.
+- Data: `backend/data/accounts.json`, Rho `/accounts` shape, one balance snapshot per stage
+  (operating $2.35M → $1.905M, treasury $7.40M → $7.42M).
+- Backend: `pipeline/cash.py` — inflows = average settled credits over the three complete months
+  before the evaluated month (same window as trailing spend); net burn = trailing spend − inflows;
+  runway = (operating + treasury) / net burn; buffer = `Config.buffer_months` × net burn; sweep,
+  shortfall and `sweep × APY / 12`; `Finding.runway_weeks_delta` for every finding except renewals
+  and spikes. `Findings.cash`; `Config.buffer_months = 3`, `Config.treasury_apy = 0.038`.
+  `tests/test_cash.py` 6 tests; suite 120.
+- Frontend: runway shown on an alert only when the toggle is on **and** |Δ| ≥ 1 week, with the
+  delivery label ("Runway detail → DM to Dana K." / "→ #spend-signals"); `CashCard` in reports:
+  full card on the first look and whenever there is news (a buffer shortfall, or idle cash above
+  the buffer ≥ 2 months of net burn), otherwise a one-line runway status. Buffer months and APY
+  are editable in Settings → Connections and applied client-side (no rerun).
+- Demo data outcome: first look → full card (operating 5.2 mo of burn, ~$1.0M above the 3-month
+  buffer, ≈ $3.2K/mo at 3.8%); Sep 30 → status line only (sweep $669K = 1.6 mo, no news);
+  Anthropic ≈ 2.2 weeks, Pinecone ≈ 1.5 weeks; Loom, Figma, Notion stay dollars-only.
 
 ## Demo runbook
 

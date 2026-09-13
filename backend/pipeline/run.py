@@ -19,6 +19,7 @@ from models import (
     VendorSummary,
 )
 from pipeline.baseline import usage_baseline
+from pipeline.cash import attach_runway, cash_position
 from pipeline.detect import Candidate, EvalContext, detect_vendor, window_start_for
 from pipeline.explain import confidence_for, drivers_for
 from pipeline.filter import filter_spend
@@ -142,6 +143,7 @@ def run_pipeline(
     taxonomy=None,
     classify_unknown: ClassifyHook | None = None,
     stage: str = "history",
+    accounts: dict | None = None,
 ) -> Findings:
     config = config or DEFAULT_CONFIG
     overrides = overrides or []
@@ -207,11 +209,15 @@ def run_pipeline(
     category_totals = {k: v for k, v in category_totals.items() if v != 0}
 
     data_start = spend["date"].min().date() if len(spend) else None
+    # Cash position from Rho's own accounts: runway per finding only when balances are known.
+    cash = cash_position(df, as_of, trailing, accounts, config.buffer_months, config.treasury_apy)
+    attach_runway(findings, cash)
     return Findings(
         stage=stage,
         window_start=ctx.window_start,
         window_end=as_of,
         period=_period(stage, data_start, as_of, eval_month, complete),
+        cash=cash,
         transaction_count=int(len(spend)),
         recurring_vendor_count=above_floor,
         data_start=data_start,

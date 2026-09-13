@@ -17,6 +17,10 @@ three files are one continuous generated period split by `initiated_at`, so a st
 concatenation of its files. Pending rows (last two days of each window) are never re-emitted as
 settled in a later file; the pipeline counts `settled` only.
 
+`accounts.json` (hand-written, not generated) holds one balance snapshot per stage in Rho's
+`/accounts` shape (minor units): Operating Checking, Rho Treasury (`investment`) and the card
+balance. The cash position and runway framing read it; without it the pipeline simply omits them.
+
 ## Regenerate
 
 ```
