@@ -41,6 +41,9 @@ export const DEFAULT_CONNECTIONS: Connections = {
   runway: { enabled: false, delivery: "dm", recipient: "Dana K." },
 };
 
+/** One turn in the clarification thread under a finding. */
+export type ThreadTurn = { role: "user" | "bot"; text: string; ts: number; source?: "claude" | "template" };
+
 export type DemoState = {
   stage: DemoStage;
   config: Config | null;
@@ -51,6 +54,7 @@ export type DemoState = {
   results: Partial<Record<Stage, StageResult>>;
   pendingRerun: string | null;
   connections: Connections;
+  threads: Record<string, ThreadTurn[]>;
 };
 
 const KEYS: Record<keyof DemoState, string> = {
@@ -63,6 +67,7 @@ const KEYS: Record<keyof DemoState, string> = {
   results: `${PREFIX}results`,
   pendingRerun: `${PREFIX}pendingRerun`,
   connections: `${PREFIX}connections`,
+  threads: `${PREFIX}threads`,
 };
 
 export const DEFAULT_STATE: DemoState = {
@@ -75,6 +80,7 @@ export const DEFAULT_STATE: DemoState = {
   results: {},
   pendingRerun: null,
   connections: DEFAULT_CONNECTIONS,
+  threads: {},
 };
 
 function readKey<T>(key: string, fallback: T): T {

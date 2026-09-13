@@ -1,10 +1,11 @@
 import { useSyncExternalStore } from "react";
-import { getDefaultConfig, narrate, runStage } from "./api";
+import { ask, getDefaultConfig, narrate, runStage } from "./api";
 import { longDate } from "./format";
 import {
   type ChannelMessage,
   type OpenIssueRecord,
   type StageResult,
+  type ThreadTurn,
   getState,
   newId,
   setState,
@@ -197,4 +198,59 @@ export async function consumePendingRerun(): Promise<void> {
 
 export async function loadConfigForSettings(): Promise<Config> {
   return ensureConfig();
+}
+
+// --- clarification threads -------------------------------------------------------------------
+
+const threadBusy = new Set<string>();
+const threadListeners = new Set<() => void>();
+
+function setThreadBusy(findingId: string, on: boolean): void {
+  if (on) threadBusy.add(findingId);
+  else threadBusy.delete(findingId);
+  threadListeners.forEach((l) => l());
+}
+
+function subscribeThreadBusy(cb: () => void): () => void {
+  threadListeners.add(cb);
+  return () => threadListeners.delete(cb);
+}
+
+export function useThreadBusy(findingId: string | null): boolean {
+  return useSyncExternalStore(
+    subscribeThreadBusy,
+    () => (findingId ? threadBusy.has(findingId) : false),
+    () => false,
+  );
+}
+
+function appendTurn(findingId: string, turn: ThreadTurn): void {
+  const threads = getState().threads;
+  setState({ threads: { ...threads, [findingId]: [...(threads[findingId] ?? []), turn] } });
+}
+
+/** Ask a clarifying question under a finding. The answer is grounded in that finding's evidence
+ *  pack server-side; on any failure the server returns a template answer, never an error text. */
+export async function askInThread(stage: Stage, findingId: string, question: string): Promise<void> {
+  const q = question.trim();
+  if (!q || threadBusy.has(findingId)) return;
+  const history = (getState().threads[findingId] ?? []).map(({ role, text }) => ({ role, text }));
+  appendTurn(findingId, { role: "user", text: q, ts: Date.now() });
+  setThreadBusy(findingId, true);
+  try {
+    const res = await ask({
+      stage,
+      finding_id: findingId,
+      question: q,
+      thread: history,
+      config: await ensureConfig(),
+      overrides: overridesList(),
+      open_issues: openIssuesBefore(stage),
+    });
+    appendTurn(findingId, { role: "bot", text: res.answer, ts: Date.now(), source: res.source });
+  } catch (e) {
+    appendTurn(findingId, { role: "bot", text: `I couldn't answer that right now: ${errorText(e)}`, ts: Date.now(), source: "template" });
+  } finally {
+    setThreadBusy(findingId, false);
+  }
 }

@@ -82,6 +82,9 @@ export function AlertCard({
   demoted,
   onReact,
   onAnswer,
+  onOpenThread,
+  replyCount = 0,
+  threadOpen = false,
 }: {
   finding: Finding;
   text: AlertText | undefined;
@@ -92,6 +95,9 @@ export function AlertCard({
   demoted: boolean;
   onReact: (r: Reaction) => void;
   onAnswer: (costType: CostType) => void;
+  onOpenThread?: () => void;
+  replyCount?: number;
+  threadOpen?: boolean;
 }) {
   const f = finding;
   // "llm" was inferred from the charges; "default" means nothing classified it yet. Both are
@@ -241,10 +247,22 @@ export function AlertCard({
             </button>
           );
         })}
+        {onOpenThread && (
+          <button
+            type="button"
+            onClick={onOpenThread}
+            aria-pressed={threadOpen}
+            className={`ml-auto rounded border px-3 py-1 text-xs font-bold hover:bg-slack-hover ${
+              threadOpen ? "border-slack-link text-slack-link" : "border-[#bbb]"
+            }`}
+          >
+            {replyCount > 0 ? `${replyCount} ${replyCount === 1 ? "reply" : "replies"}` : "Reply in thread"}
+          </button>
+        )}
         <a
           href="#"
           onClick={(e) => e.preventDefault()}
-          className="ml-auto rounded border border-[#bbb] px-3 py-1 text-xs font-bold hover:bg-slack-hover"
+          className={`rounded border border-[#bbb] px-3 py-1 text-xs font-bold hover:bg-slack-hover ${onOpenThread ? "" : "ml-auto"}`}
         >
           View in Rho ↗
         </a>

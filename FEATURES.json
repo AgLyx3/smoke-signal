@@ -113,6 +113,18 @@
       ],
       "status": "passing",
       "evidence": "2026-09-13: e2e settings test extended with the connections steps (key masked, key not in storage, runway toggle → radios, channel choice survives reload) — 1 passed locally against vercel dev (24.4 s); full suite rerun on production after deploy, see PROGRESS.md. Browser pane screenshot of the section reviewed."
+    },
+    {
+      "id": "thread-questions",
+      "area": "demo",
+      "description": "Slack-style thread under every alert card and report item: POST /api/ask answers a clarifying question from an evidence pack built for that finding only (facts, monthly series, individual charges, cardholder totals, thresholds, what is not visible), grounded like the cards, with a template fallback and a source marker.",
+      "verify": [
+        "`cd backend && uv run pytest tests/test_ask.py`: the evidence pack holds only the vendor's rows and the right months (Anthropic Sep $34,600.86 / Aug $21,625.54), Pinecone's cardholder totals; a grounded fake answer is returned as is; an ungrounded one regenerates once then templates; API errors template; the template quotes only pack numbers.",
+        "Live: 'Show me the charges' lists the two invoices with memos; 'Why now and not last month?' explains against the trend and the $ threshold; 'Which cardholders?' on Pinecone names Marcus Chen; an AWS question is declined and redirected to @Rho. Each 2–4 s, source claude.",
+        "`npm run test:e2e`: open the Anthropic thread, click 'Show me the charges', a bot turn with a source marker appears, the card shows '1 reply', and the thread survives a reload."
+      ],
+      "status": "passing",
+      "evidence": "2026-09-13: test_ask.py 6 passed (suite 114). Live via vercel dev: four questions answered as described (3.9 s, 3.0 s, 2.0 s; out-of-scope declined). e2e presenter test with the thread step: 1 passed locally in 45.8 s (first run caught a locator that matched the report items' 'Reply in thread about Loom' button — exact match now). Production rerun after deploy recorded in PROGRESS.md."
     }
   ]
 }

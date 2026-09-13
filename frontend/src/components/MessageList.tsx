@@ -50,14 +50,19 @@ export function MessageList({
   busyLabel,
   onReact,
   onAnswer,
+  onOpenThread,
+  openThreadId,
 }: {
   state: DemoState;
   busy: boolean;
   busyLabel: string;
   onReact: (findingId: string, r: Reaction) => void;
   onAnswer: (vendor: string, costType: CostType) => void;
+  onOpenThread: (stage: Stage, findingId: string) => void;
+  openThreadId: string | null;
 }) {
-  const { messages, results, openIssues, reactions, overrides } = state;
+  const { messages, results, openIssues, reactions, overrides, threads } = state;
+  const replyCount = (findingId: string) => (threads[findingId] ?? []).filter((t) => t.role === "bot").length;
 
   const openSince = new Map<string, string>();
   openIssues.forEach((o) => {
@@ -71,7 +76,15 @@ export function MessageList({
     if (!result) return <SystemLine text="This message's data was cleared." tone="info" />;
 
     if (m.kind === "report") {
-      return <ReportMessage findings={result.findings} report={result.narration.report ?? null} openSince={openSince} />;
+      return (
+        <ReportMessage
+          findings={result.findings}
+          report={result.narration.report ?? null}
+          openSince={openSince}
+          onOpenThread={(findingId) => onOpenThread(m.stage, findingId)}
+          replyCount={replyCount}
+        />
+      );
     }
 
     const finding = result.findings.findings.find((f) => f.id === m.findingId);
@@ -93,6 +106,9 @@ export function MessageList({
         demoted={finding.route !== "alert"}
         onReact={(r) => onReact(finding.id, r)}
         onAnswer={(c) => onAnswer(finding.vendor, c)}
+        onOpenThread={() => onOpenThread(m.stage, finding.id)}
+        replyCount={replyCount(finding.id)}
+        threadOpen={openThreadId === finding.id}
       />
     );
   };

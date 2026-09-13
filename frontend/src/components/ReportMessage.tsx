@@ -45,10 +45,22 @@ function prevMonthIso(iso: string): string {
   return m === 1 ? `${y - 1}-12-01` : `${y}-${String(m - 1).padStart(2, "0")}-01`;
 }
 
-function Item({ f, text, openSince }: { f: Finding; text: string; openSince: string | undefined }) {
+function Item({
+  f,
+  text,
+  openSince,
+  onReply,
+  replies = 0,
+}: {
+  f: Finding;
+  text: string;
+  openSince: string | undefined;
+  onReply?: () => void;
+  replies?: number;
+}) {
   const decrease = f.impact_monthly < 0;
   return (
-    <li className="flex gap-3 py-2">
+    <li className="group flex gap-3 py-2">
       <div className={`w-24 shrink-0 text-right text-sm font-semibold tabular-nums ${decrease ? "text-emerald-700" : "text-ink"}`}>
         {impactLabel(f)}
       </div>
@@ -66,6 +78,16 @@ function Item({ f, text, openSince }: { f: Finding; text: string; openSince: str
           {f.escalation_of && (
             <span className="rounded bg-amber-100 px-1.5 py-px text-[11px] font-medium text-amber-900">Escalated</span>
           )}
+          {onReply && (
+            <button
+              type="button"
+              onClick={onReply}
+              className={`ml-auto text-[11px] font-medium text-slack-link hover:underline ${replies > 0 ? "" : "opacity-0 group-hover:opacity-100 focus:opacity-100"}`}
+              aria-label={`Reply in thread about ${f.vendor}`}
+            >
+              {replies > 0 ? `${replies} ${replies === 1 ? "reply" : "replies"}` : "Reply"}
+            </button>
+          )}
         </div>
         <p className="text-sm leading-relaxed text-ink-soft">{text}</p>
       </div>
@@ -77,11 +99,15 @@ export function ReportMessage({
   findings,
   report,
   openSince,
+  onOpenThread,
+  replyCount,
 }: {
   findings: Findings;
   report: ReportText | null;
   /** finding id → window_end of the stage that first alerted on it */
   openSince: Map<string, string>;
+  onOpenThread?: (findingId: string) => void;
+  replyCount?: (findingId: string) => number;
 }) {
   const textById = new Map<string, string>();
   if (report) {
@@ -124,7 +150,14 @@ export function ReportMessage({
         ) : (
           <ul className="mt-1 divide-y divide-slack-border/60">
             {attention.map((f) => (
-              <Item key={f.id} f={f} text={textById.get(f.id) ?? fallbackText(f)} openSince={openSince.get(issueKey(f.id))} />
+              <Item
+                key={f.id}
+                f={f}
+                text={textById.get(f.id) ?? fallbackText(f)}
+                openSince={openSince.get(issueKey(f.id))}
+                onReply={onOpenThread ? () => onOpenThread(f.id) : undefined}
+                replies={replyCount?.(f.id) ?? 0}
+              />
             ))}
           </ul>
         )}
@@ -147,7 +180,14 @@ export function ReportMessage({
             const body = (
               <ul className="divide-y divide-slack-border/60">
                 {list.map((f) => (
-                  <Item key={f.id} f={f} text={textById.get(f.id) ?? fallbackText(f)} openSince={undefined} />
+                  <Item
+                    key={f.id}
+                    f={f}
+                    text={textById.get(f.id) ?? fallbackText(f)}
+                    openSince={undefined}
+                    onReply={onOpenThread ? () => onOpenThread(f.id) : undefined}
+                    replies={replyCount?.(f.id) ?? 0}
+                  />
                 ))}
               </ul>
             );

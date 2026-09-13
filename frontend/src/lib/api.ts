@@ -1,5 +1,6 @@
 import { MOCK_DELAY_MS, USE_MOCK } from "./data-source";
 import { MOCK_DEFAULT_CONFIG, mockNarrate, mockRun } from "./mock";
+import type { components } from "./api-types";
 import type { Config, Findings, NarrateRequest, NarrateResponse, RunRequest } from "./types";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -36,6 +37,17 @@ export async function narrate(req: NarrateRequest): Promise<NarrateResponse> {
     return mockNarrate(req);
   }
   return post<NarrateRequest, NarrateResponse>("/api/narrate", req);
+}
+
+export type AskRequest = components["schemas"]["AskRequest"];
+export type AskResponse = components["schemas"]["AskResponse"];
+
+export async function ask(req: AskRequest): Promise<AskResponse> {
+  if (USE_MOCK) {
+    await delay(MOCK_DELAY_MS);
+    return { answer: `Mock answer to "${req.question}".`, source: "template", evidence_used: [] };
+  }
+  return post<AskRequest, AskResponse>("/api/ask", req);
 }
 
 export async function getDefaultConfig(): Promise<Config> {

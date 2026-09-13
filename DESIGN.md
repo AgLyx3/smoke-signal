@@ -167,6 +167,21 @@ vercel.json: services {web: frontend/, api: backend/ main:app}; rewrite /api/(.*
     the same 10 non-strict 4.4 s; Pydantic validates every entry instead), 20 s timeout, no
     retries; the SDK's `messages.create` exposes no `temperature`, so determinism rests on the
     schema, the prompt and the grounding check.
+12. **Thread questions (added 2026-09-13).** Every alert card and report item has a Slack-style
+    thread. A question goes to `POST /api/ask {stage, finding_id, question, thread[], config,
+    overrides, open_issues}` and is answered from an **evidence pack** built server-side for that
+    finding only (`pipeline/evidence.py`): the card's facts, the vendor's last 8 monthly totals
+    and charge counts, the individual charges in the evaluated and prior month (date, amount,
+    cardholder, card name, memo, raw descriptor; largest 40), cardholder totals for the month, the
+    thresholds in force, and an explicit list of what is not visible (per-model usage, invoice
+    lines, plan or seat count, other vendors). Claude answers with the card rules plus three of
+    its own: answer only from the pack, say what is not visible instead of guessing, and redirect
+    general spend questions to `@Rho` in one sentence. The reply goes through the same grounding
+    check as the cards (every number in the pack may be quoted); an ungrounded reply is
+    regenerated once, then a deterministic template answers from the pack. One call per
+    question, 2–4 s; `X-Narration` reports `claude` or `template`. Threads persist per finding in
+    `localStorage`; cardholder names are allowed in answers (synthetic data here; in production
+    the thread lives in Rho's Owner/Admin-only Slack surface).
 
 ## 7. UI
 
@@ -177,6 +192,12 @@ vercel.json: services {web: frontend/, api: backend/ main:app}; rewrite /api/(.*
   (expected / investigating / not useful).
 - **Report:** "Needs attention" first, then "Worth knowing" grouped by category, each sorted by
   $ impact. No cap.
+- **Thread panel:** *Reply in thread* on every alert card (shows the reply count once there is
+  one) and a *Reply* link on every report item open a right-hand panel: the finding's summary, the
+  conversation, four suggested questions as chips ("Show me the charges", "Which cardholders?",
+  "Why now and not last month?" / "Why isn't this an alert?", "What don't you know here?"), and a
+  composer. Bot turns carry a source marker ("via Claude, grounded in this vendor's data" or
+  "template answer").
 - `/settings`: per-type threshold table, vendor classification overrides, *Reset demo*. Save
   returns to `/` and re-runs.
 - `/settings` → **Connections** (added 2026-09-13; the PRD's progressive-disclosure ladder made

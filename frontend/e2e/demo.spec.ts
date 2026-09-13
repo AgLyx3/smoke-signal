@@ -42,6 +42,20 @@ test("three presenter steps, the ask, and the month-end carry-over", async ({ pa
   await expect(page.getByText(/We're treating Pinecone Systems as/)).toHaveCount(0);
   await noHorizontalOverflow(page);
 
+  // 2b. a clarifying question in the thread under the Anthropic alert, answered from its evidence
+  await page.getByRole("button", { name: "Reply in thread", exact: true }).first().click(); // the Anthropic card's button
+  const thread = page.getByRole("complementary", { name: "Thread" });
+  await expect(thread.getByText("Anthropic", { exact: true })).toBeVisible();
+  await thread.getByRole("button", { name: "Show me the charges" }).click();
+  const botTurn = thread.getByTestId("thread-bot-turn").first();
+  await expect(botTurn).toBeVisible({ timeout: 90_000 });
+  await expect(botTurn).toContainText(/34,6|34\.6K|Anthropic/);
+  await expect(botTurn.getByText(/via Claude|template answer/)).toBeVisible();
+  await expect(page.getByRole("button", { name: /1 reply/ })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("button", { name: /1 reply/ })).toBeVisible(); // thread persists
+  await noHorizontalOverflow(page);
+
   // 3. month closes -> both issues carried as open, renewal notice, no new alerts
   await page.getByRole("button", { name: "Month closes" }).click();
   await expect(page.getByText("Open since Sep 5")).toHaveCount(2);

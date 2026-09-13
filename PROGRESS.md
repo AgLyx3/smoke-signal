@@ -148,8 +148,26 @@ or `FEATURES.json`; the integrator reviews, re-runs their tests, records evidenc
   channel) — per the user, the interaction is not wired: channel copy is unchanged. State lives in
   `cost-signals:connections`, clears on Reset. e2e settings test extended (masking, storage check,
   toggle, reload persistence).
-- Thread chat approved by the user; designed next (DESIGN.md §6.12 / §7) and built in its own
-  worktree.
+- Merged and deployed (`0a7530f`); e2e 2 passed on prod.
+
+## 2026-09-13 — Thread questions (worktree `thread`)
+
+- Design in DESIGN.md §6.12 and §7 (approved by the user with both defaults: threads on alert
+  cards and report items; cardholder names allowed).
+- Backend: `pipeline/evidence.py` (`prepare_spend`, `build_evidence`: finding facts, 8-month
+  series, charges for the evaluated and prior month, cardholder totals, thresholds, not-visible
+  list), `llm/ask.py` (`answer_question`: one call, grounding check over every number in the pack,
+  one regeneration, template fallback; never raises), `POST /api/ask`, `AskRequest/AskResponse/
+  AskTurn` models. `tests/test_ask.py` 6 tests; suite 114, eval 24/24.
+- Frontend: `ThreadPanel` (right-hand Slack-style thread with chips and composer, source marker
+  per bot turn), "Reply in thread" on alert cards, "Reply" on report items, threads persisted in
+  `cost-signals:threads`, `askInThread` with a per-thread busy flag.
+- Live check against vercel dev: "Show me the charges" → both invoices with memos; "Why now and
+  not last month?" → the trend history and the $4,785.93 threshold; Pinecone "Which cardholders?"
+  → Marcus Chen with both months; an AWS question → declined, pointed to @Rho. 2–4 s each.
+- e2e: the presenter test gained a thread step; first run opened the wrong thread because
+  `getByRole('button', {name: 'Reply in thread'})` also matched the report items' aria-label —
+  exact match now. 1 passed locally.
 
 ## Demo runbook
 

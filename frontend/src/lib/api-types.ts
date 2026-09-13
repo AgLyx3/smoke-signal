@@ -72,6 +72,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ask": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask
+         * @description A clarifying question under one finding, answered from that finding's evidence pack.
+         */
+        post: operations["ask_api_ask_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -86,6 +106,66 @@ export interface components {
             what_moved: string;
             /** Why */
             why: string;
+        };
+        /**
+         * AskRequest
+         * @description A clarifying question in the thread under one alert or report item. The answer is
+         *     grounded in an evidence pack built server-side for that finding: its facts, the vendor's
+         *     monthly series, and the individual charges in the evaluated and prior month.
+         */
+        AskRequest: {
+            /**
+             * Stage
+             * @enum {string}
+             */
+            stage: "history" | "inject-1" | "inject-2";
+            /** Finding Id */
+            finding_id: string;
+            /** Question */
+            question: string;
+            /**
+             * Thread
+             * @description Earlier turns in this thread, oldest first
+             * @default []
+             */
+            thread: components["schemas"]["AskTurn"][];
+            config?: components["schemas"]["Config"] | null;
+            /**
+             * Overrides
+             * @default []
+             */
+            overrides: components["schemas"]["Override"][];
+            /**
+             * Open Issues
+             * @default []
+             */
+            open_issues: components["schemas"]["OpenIssue"][];
+        };
+        /** AskResponse */
+        AskResponse: {
+            /** Answer */
+            answer: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "claude" | "template";
+            /**
+             * Evidence Used
+             * @description Which parts of the evidence pack were available
+             * @default []
+             */
+            evidence_used: string[];
+        };
+        /** AskTurn */
+        AskTurn: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "bot";
+            /** Text */
+            text: string;
         };
         /** Baseline */
         Baseline: {
@@ -544,6 +624,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NarrateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ask_api_ask_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AskRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AskResponse"];
                 };
             };
             /** @description Validation Error */

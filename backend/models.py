@@ -194,3 +194,28 @@ class ReportText(BaseModel):
 class NarrateResponse(BaseModel):
     alerts: list[AlertText] = []
     report: ReportText | None = None
+
+
+class AskTurn(BaseModel):
+    role: Literal["user", "bot"]
+    text: str
+
+
+class AskRequest(BaseModel):
+    """A clarifying question in the thread under one alert or report item. The answer is
+    grounded in an evidence pack built server-side for that finding: its facts, the vendor's
+    monthly series, and the individual charges in the evaluated and prior month."""
+
+    stage: Stage
+    finding_id: str
+    question: str = Field(min_length=1, max_length=500)
+    thread: list[AskTurn] = Field(default=[], description="Earlier turns in this thread, oldest first")
+    config: Config | None = None
+    overrides: list[Override] = []
+    open_issues: list[OpenIssue] = []
+
+
+class AskResponse(BaseModel):
+    answer: str
+    source: Literal["claude", "template"]
+    evidence_used: list[str] = Field(default=[], description="Which parts of the evidence pack were available")
