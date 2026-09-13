@@ -1,0 +1,200 @@
+import { useSyncExternalStore } from "react";
+import { getDefaultConfig, narrate, runStage } from "./api";
+import { longDate } from "./format";
+import {
+  type ChannelMessage,
+  type OpenIssueRecord,
+  type StageResult,
+  getState,
+  newId,
+  setState,
+} from "./store";
+import { type Config, type CostType, type Findings, type OpenIssue, type RunRequest, type Stage, STAGES, stageIndex } from "./types";
+
+// Orchestration for the presenter flow. Components call these; the store notifies them.
+
+let busy = false;
+const busyListeners = new Set<(b: boolean) => void>();
+
+export function onBusy(l: (b: boolean) => void): () => void {
+  busyListeners.add(l);
+  return () => busyListeners.delete(l);
+}
+
+function setBusy(b: boolean): void {
+  busy = b;
+  busyListeners.forEach((l) => l(b));
+}
+
+export function isBusy(): boolean {
+  return busy;
+}
+
+function subscribeBusy(cb: () => void): () => void {
+  return onBusy(() => cb());
+}
+
+export function useBusy(): boolean {
+  return useSyncExternalStore(subscribeBusy, isBusy, () => false);
+}
+
+export const STAGE_STEP: Record<Stage, { label: string; mode: "alerts" | "report" }> = {
+  history: { label: "Load history", mode: "report" },
+  "inject-1": { label: "New charges", mode: "alerts" },
+  "inject-2": { label: "Month closes", mode: "report" },
+};
+
+export function nextStage(): Stage | null {
+  const { stage } = getState();
+  if (stage === "idle") return "history";
+  const i = stageIndex(stage);
+  return i + 1 < STAGES.length ? STAGES[i + 1] : null;
+}
+
+async function ensureConfig(): Promise<Config> {
+  const { config } = getState();
+  if (config) return config;
+  const fresh = await getDefaultConfig();
+  setState({ config: fresh });
+  return fresh;
+}
+
+function overridesList(): { vendor: string; cost_type: CostType }[] {
+  return Object.entries(getState().overrides).map(([vendor, cost_type]) => ({ vendor, cost_type }));
+}
+
+/** Open issues raised before `stage`; the stage's own issues must not dedupe its rerun. */
+function openIssuesBefore(stage: Stage): OpenIssue[] {
+  return getState()
+    .openIssues.filter((o) => stageIndex(o.stage) < stageIndex(stage))
+    .map(({ id, vendor, kind, impact_monthly }) => ({ id, vendor, kind, impact_monthly }));
+}
+
+async function buildRequest(stage: Stage): Promise<RunRequest> {
+  return {
+    stage,
+    config: await ensureConfig(),
+    overrides: overridesList(),
+    open_issues: openIssuesBefore(stage),
+  };
+}
+
+function appendMessages(msgs: ChannelMessage[]): void {
+  setState({ messages: [...getState().messages, ...msgs] });
+}
+
+export function postSystem(text: string, tone: "info" | "error" = "info"): void {
+  const asOf = currentAsOf();
+  appendMessages([{ id: newId(), ts: Date.now(), asOf, kind: "system", text, tone }]);
+}
+
+function currentAsOf(): string {
+  const { stage, results } = getState();
+  if (stage === "idle") return new Date().toISOString().slice(0, 10);
+  return results[stage]?.findings.window_end ?? new Date().toISOString().slice(0, 10);
+}
+
+function recordOpenIssues(findings: Findings): void {
+  const existing = getState().openIssues;
+  const fresh: OpenIssueRecord[] = findings.findings
+    .filter((f) => f.route === "alert")
+    .filter((f) => !existing.some((o) => o.id === f.id))
+    .map((f) => ({ id: f.id, vendor: f.vendor, kind: f.kind, impact_monthly: f.impact_monthly, stage: findings.stage }));
+  if (fresh.length) setState({ openIssues: [...existing, ...fresh] });
+}
+
+function errorText(e: unknown): string {
+  return e instanceof Error ? e.message : String(e);
+}
+
+/** Presenter step: run the stage, narrate it, post to the channel. */
+export async function runStep(stage: Stage): Promise<void> {
+  if (busy) return;
+  setBusy(true);
+  try {
+    const req = await buildRequest(stage);
+    const findings = await runStage(req);
+    const narration = await narrate({ findings, mode: STAGE_STEP[stage].mode });
+    const result: StageResult = { findings, narration };
+    const asOf = findings.window_end;
+    const ts = Date.now();
+
+    const msgs: ChannelMessage[] = [];
+    if (STAGE_STEP[stage].mode === "alerts") {
+      const alerting = findings.findings.filter((f) => f.route === "alert");
+      if (alerting.length === 0) {
+        msgs.push({ id: newId(), ts, asOf, kind: "system", tone: "info", text: `New charges through ${longDate(asOf)} evaluated: nothing crossed an alert threshold.` });
+      }
+      alerting.forEach((f, i) => msgs.push({ id: newId(), ts: ts + i, asOf, kind: "alert", stage, findingId: f.id }));
+      recordOpenIssues(findings);
+    } else {
+      msgs.push({ id: newId(), ts, asOf, kind: "report", stage });
+    }
+
+    setState({
+      stage,
+      results: { ...getState().results, [stage]: result },
+      messages: [...getState().messages, ...msgs],
+    });
+  } catch (e) {
+    postSystem(`Couldn't run "${STAGE_STEP[stage].label}": ${errorText(e)}`, "error");
+  } finally {
+    setBusy(false);
+  }
+}
+
+/** Re-run detection for every loaded stage with the current config and overrides.
+ *  Narration text is kept; cards and reports re-derive their facts from the new Findings. */
+export async function rerunAll(systemLine: string | null): Promise<void> {
+  if (busy) return;
+  const loaded = STAGES.filter((s) => getState().results[s]);
+  if (loaded.length === 0) {
+    if (systemLine) postSystem(systemLine);
+    return;
+  }
+  setBusy(true);
+  try {
+    for (const stage of loaded) {
+      const req = await buildRequest(stage);
+      const findings = await runStage(req);
+      const prev = getState().results[stage];
+      if (!prev) continue;
+      setState({ results: { ...getState().results, [stage]: { findings, narration: prev.narration } } });
+      if (STAGE_STEP[stage].mode === "alerts") recordOpenIssues(findings);
+    }
+    if (systemLine) postSystem(systemLine);
+  } catch (e) {
+    postSystem(`Re-evaluation failed: ${errorText(e)}`, "error");
+  } finally {
+    setBusy(false);
+  }
+}
+
+/** Answer to the inline cost-type question on an alert card. */
+export async function answerAsk(vendor: string, costType: CostType): Promise<void> {
+  setState({ overrides: { ...getState().overrides, [vendor]: costType } });
+  await rerunAll(null);
+}
+
+export function setReaction(findingId: string, reaction: "expected" | "investigating" | "not_useful"): void {
+  const reactions = { ...getState().reactions };
+  if (reactions[findingId] === reaction) delete reactions[findingId];
+  else reactions[findingId] = reaction;
+  setState({ reactions });
+}
+
+/** Settings → Save. The channel picks up `pendingRerun` on mount and re-evaluates. */
+export function saveSettings(config: Config, overrides: Record<string, CostType>): void {
+  setState({ config, overrides, pendingRerun: "Thresholds updated — re-evaluated" });
+}
+
+export async function consumePendingRerun(): Promise<void> {
+  const { pendingRerun } = getState();
+  if (!pendingRerun) return;
+  setState({ pendingRerun: null });
+  await rerunAll(pendingRerun);
+}
+
+export async function loadConfigForSettings(): Promise<Config> {
+  return ensureConfig();
+}
