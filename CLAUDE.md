@@ -33,7 +33,7 @@ through Series B, including companies in their scale-up phase.
 - **Never push, deploy, or publish without explicit permission.** Includes `git push`,
   `vercel deploy`, and promoting a preview to production.
 - **Work in a git worktree, never directly on `main`.** Each feature or parallel stream starts
-  with `git worktree add ../rho-cost-signal-worktrees/<name> -b <branch>`. One worktree per
+  with `git worktree add ../smoke-signal-worktrees/<name> -b <branch>`. One worktree per
   feature, so parallel work never shares a tree. Merging back to `main` needs explicit
   permission.
 - **Never copy a secret file into a worktree.** A fresh worktree has no `.env*`. Once the Vercel

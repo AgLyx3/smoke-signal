@@ -11,7 +11,7 @@ export function ChannelHeader() {
         </div>
       </div>
       <div className="flex items-center gap-3 text-[13px] text-slack-muted">
-        <span className="hidden truncate lg:inline">Cost changes worth knowing, from Rho</span>
+        <span className="hidden truncate lg:inline">Catch your runway burning before it does</span>
         <span className="flex items-center gap-1 rounded border border-slack-border px-2 py-[2px]">
           <span aria-hidden className="flex -space-x-1">
             <span className="h-4 w-4 rounded-sm bg-emerald-500" />

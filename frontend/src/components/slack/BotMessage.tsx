@@ -28,7 +28,7 @@ export function BotMessage({
       <div className="min-w-0 flex-1">
         {!continued && (
           <div className="flex items-baseline gap-1.5">
-            <span className="text-[15px] font-black">Cost Signals</span>
+            <span className="text-[15px] font-black">Smoke Signal</span>
             <span className="rounded bg-[#e8e8e8] px-1 py-px text-[10px] font-bold uppercase text-slack-muted">App</span>
             <span className="text-xs text-slack-muted">{clockTime(ts)}</span>
           </div>

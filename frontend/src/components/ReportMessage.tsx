@@ -113,7 +113,7 @@ export function ReportMessage({
   runway?: RunwayPrefs;
 }) {
   // The cash position shows in the channel only when Settings routes runway detail there; with
-  // "DM to the founder" it appears in the Cost Signals direct message instead.
+  // "DM to the founder" it appears in the Smoke Signal direct message instead.
   const showRunway = Boolean(runway?.enabled) && runway?.delivery === "channel";
   const textById = new Map<string, string>();
   if (report) {

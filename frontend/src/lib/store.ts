@@ -1,10 +1,10 @@
 import { useSyncExternalStore } from "react";
 import type { Config, CostType, Findings, NarrateResponse, OpenIssue, Stage } from "./types";
 
-// Client state lives in localStorage under `cost-signals:*` so a reload keeps the transcript.
+// Client state lives in localStorage under `smoke-signal:*` so a reload keeps the transcript.
 // Every localStorage access is wrapped; a blocked or full store degrades to in-memory state.
 
-const PREFIX = "cost-signals:";
+const PREFIX = "smoke-signal:";
 
 export type DemoStage = "idle" | Stage;
 export type Reaction = "expected" | "investigating" | "not_useful";
@@ -63,7 +63,7 @@ export type DemoState = {
   pendingRerun: string | null;
   connections: Connections;
   threads: Record<string, ThreadTurn[]>;
-  /** Which Slack surface is open: the channel, or the direct message with the Cost Signals app. */
+  /** Which Slack surface is open: the channel, or the direct message with the Smoke Signal app. */
   view: "channel" | "dm";
   /** How many DM messages the founder has seen; the sidebar badge is the rest. */
   dmSeen: number;

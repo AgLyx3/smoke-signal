@@ -14,7 +14,7 @@ function EmptyChannel() {
       </div>
       <h2 className="text-2xl font-black">You&apos;re looking at #spend-signals</h2>
       <p className="mt-1 max-w-xl text-[15px] text-ink-soft">
-        This is the very beginning of the channel. Cost Signals posts here when a vendor moves off its own trend, and
+        This is the very beginning of the channel. Smoke Signal posts here when a vendor moves off its own trend, and
         sends a report when the month closes.
       </p>
       <p className="mt-3 text-sm text-slack-muted">Use the presenter bar below to load history.</p>
@@ -28,7 +28,7 @@ function Pending({ label }: { label: string }) {
       <BotAvatar />
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-1.5">
-          <span className="text-[15px] font-black">Cost Signals</span>
+          <span className="text-[15px] font-black">Smoke Signal</span>
           <span className="rounded bg-[#e8e8e8] px-1 py-px text-[10px] font-bold uppercase text-slack-muted">App</span>
         </div>
         <div className="mt-1 flex items-center gap-2 text-sm text-slack-muted">

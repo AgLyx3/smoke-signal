@@ -9,7 +9,7 @@ import { BotAvatar } from "./slack/BotAvatar";
 import { BotMessage, DayDivider } from "./slack/BotMessage";
 import { Composer } from "./slack/Composer";
 
-// The founder's direct message with the Cost Signals app: where runway detail goes when Settings
+// The founder's direct message with the Smoke Signal app: where runway detail goes when Settings
 // routes it there. The channel keeps the dollars; this keeps the weeks.
 
 function RunwayLines({ m }: { m: Extract<DmMessage, { kind: "runway" }> }) {
@@ -55,7 +55,7 @@ export function DmView({ state }: { state: DemoState }) {
       <header className="flex h-12 shrink-0 items-center justify-between border-b border-slack-border px-5">
         <div className="flex items-center gap-2 text-[17px] font-black">
           <BotAvatar />
-          Cost Signals
+          Smoke Signal
           <span className="rounded bg-[#e8e8e8] px-1 py-px text-[10px] font-bold uppercase text-slack-muted">App</span>
         </div>
         <span className="text-[13px] text-slack-muted">Direct message · runway detail for {state.connections.runway.recipient}</span>
@@ -63,7 +63,7 @@ export function DmView({ state }: { state: DemoState }) {
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-2">
         {count === 0 ? (
           <div className="px-5 pb-6 pt-10">
-            <h2 className="text-xl font-black">Cost Signals</h2>
+            <h2 className="text-xl font-black">Smoke Signal</h2>
             <p className="mt-1 max-w-xl text-[15px] text-ink-soft">
               Runway detail lands here when Settings routes it to a direct message. Nothing yet: turn on Runway
               framing, keep &ldquo;Direct message to the founder&rdquo;, and load history.

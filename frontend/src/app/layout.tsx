@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Cost Signals",
+  title: "Smoke Signal",
   description: "A cost-signal layer for Rho — demo on synthetic data",
 };
 

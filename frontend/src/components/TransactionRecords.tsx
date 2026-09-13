@@ -114,7 +114,7 @@ export function TransactionRecords() {
       <header className="border-b border-slack-border bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-slack-muted">Cost Signals</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-slack-muted">Smoke Signal</div>
             <h1 className="text-xl font-bold">Transaction records</h1>
             <p className="mt-0.5 text-sm text-slack-muted">
               What the pipeline reads: synthetic rows in Rho&apos;s <code>/transactions</code> and <code>/accounts</code> shape.

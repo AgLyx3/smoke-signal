@@ -2,7 +2,7 @@ import { cashMode, MIN_RUNWAY_WEEKS } from "@/components/CashCard";
 import type { DemoState } from "./store";
 import type { Finding, Findings, Stage } from "./types";
 
-// The direct message from the Cost Signals app carries runway detail when Settings routes it
+// The direct message from the Smoke Signal app carries runway detail when Settings routes it
 // there (owner-level information goes to the owner, not the channel). Messages are derived from
 // the loaded stages, in channel order, so nothing is stored twice.
 

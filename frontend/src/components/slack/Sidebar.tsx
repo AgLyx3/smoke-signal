@@ -96,13 +96,13 @@ export function Sidebar() {
               type="button"
               onClick={() => setState({ view: "dm" })}
               aria-current={inDm ? "page" : undefined}
-              aria-label={unread > 0 ? `Cost Signals, ${unread} unread` : "Cost Signals"}
+              aria-label={unread > 0 ? `Smoke Signal, ${unread} unread` : "Smoke Signal"}
               className={`mx-2 flex w-[calc(100%-1rem)] items-center gap-2 rounded px-2 py-[3px] text-left ${
                 inDm ? "bg-slack-selected font-medium text-white" : unread > 0 ? "font-bold text-white hover:bg-white/10" : "hover:bg-white/10"
               }`}
             >
               <span aria-hidden className="h-4 w-4 rounded-sm bg-gradient-to-br from-indigo-500 to-violet-600" />
-              Cost Signals
+              Smoke Signal
               {unread > 0 && (
                 <span className="ml-auto rounded-full bg-[#e01e5a] px-1.5 text-[11px] font-bold text-white" data-testid="dm-unread">
                   {unread}

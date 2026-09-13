@@ -1,4 +1,4 @@
-# Cost Signals — Design
+# Smoke Signal — Design
 
 Status: draft, 2026-09-12. Source PRD: "Cost Signal Layer for Rho — PRD & Implementation Plan"
 (https://claude.ai/code/artifact/b89551bd-2396-41fa-af60-1b7d197aee1e). This doc narrows the PRD
@@ -44,7 +44,7 @@ to a demo build and records what changed.
 | Two-gate alert rule, per cost type, configurable | Global $1K + 2%; $ floor only; runway filter | Per-vendor unusualness is automatic; materiality is a share of monthly spend so it scales seed → Series B |
 | No item cap in reports | Top 3 | The materiality rule sets length; grouping keeps it scannable |
 | Web page mimicking Slack + separate `/settings` page | Real Slack bot | Setup risk on demo day |
-| Bot label "Cost Signals" | "Rho · Cost Signals (concept)" | User choice |
+| Bot label "Smoke Signal" | "Rho · Smoke Signal (concept)" | User choice |
 | Live Claude calls, fallback only if needed | Cached first; no LLM | User choice; keeps the live AI story |
 | Vendor tags live; prepaid detection static (annotated) | Both live; both static | Tags are core; saves 2–3 h |
 | Synthetic data in Rho schema | + live sandbox; source-agnostic | Sandbox has 8 card rows, too thin for baselines |
@@ -60,6 +60,7 @@ to a demo build and records what changed.
 | No prepaid purchases in the synthetic data | Include a $50K credit purchase | Prepaid detection is static in this build; a round prepaid charge would make the live pipeline false-alert |
 | Cardholders 34 → 42, tracking headcount 38 → 46 | 15 cardholders | The headcount proxy (A3) is only honest if most employees hold cards |
 | Parallel feature agents do not edit `FEATURES.json` / `PROGRESS.md`; the integrator records their evidence | Each agent edits the scoreboard | Four branches editing one JSON array conflict on every merge |
+| Renamed to **Smoke Signal** (2026-09-13): bot, repo `AgLyx3/smoke-signal`, site `smoke-signal.vercel.app`, tagline "Catch your runway burning before it does" | "Cost Signals" (what it is); Burn Signal; Runway Watch | User's pick: says what it does for the founder, catches the fire early, works as a bot name and a slug; "burning" stays in the tagline, not the name |
 
 ## 4. Architecture
 
@@ -207,17 +208,17 @@ vercel.json: services {web: frontend/, api: backend/ main:app}; rewrite /api/(.*
     customer payments (and unanswered ones) count toward cash in; the answer is stored by
     transaction id, re-runs net burn and runway, and is never re-asked. Recognised revenue would
     need Rho's invoicing endpoints on top.
-    **Delivery (user, 2026-09-13: "the DM is with the Cost Signals bot").** With "Direct message
+    **Delivery (user, 2026-09-13: "the DM is with the Smoke Signal bot").** With "Direct message
     to the founder" (the default), runway detail leaves the channel entirely: alert cards stay
     dollars-only with a one-line "Runway impact sent by direct message to Dana K.", reports carry
-    no cash section, and the **Cost Signals app DM** (Apps → Cost Signals, unread badge) carries
+    no cash section, and the **Smoke Signal app DM** (Apps → Smoke Signal, unread badge) carries
     the cash position and one line per material alert ("≈ 2.3 weeks of runway · Anthropic · Off
     its trend · +$9.6K/mo"). With "the channel", everything appears inline. DM messages are
     derived from the loaded stages, not stored twice.
 
 ## 7. UI
 
-- `/`: Slack look-alike, channel `#spend-signals`, bot "Cost Signals". Presenter bar: *Load
+- `/`: Slack look-alike, channel `#spend-signals`, bot "Smoke Signal". Presenter bar: *Load
   history*, *New charges*, *Month closes*, links to *Records* and *Settings*.
 - `/transaction-records` (added 2026-09-13, bare on purpose): the raw rows the pipeline reads, in
   Rho's `/transactions` shape, plus the `/accounts` balance strip for the same beat. It follows
@@ -243,8 +244,8 @@ vercel.json: services {web: frontend/, api: backend/ main:app}; rewrite /api/(.*
   (runway months, total cash = operating + treasury, net burn = spend − inflows, what the
   operating balance above the buffer could earn in Rho Treasury) on the first look and on news,
   else a one-line runway status. Buffer months and APY are editable next to the toggle. With the
-  default "DM to the founder", all of that appears in the **Cost Signals direct message**
-  (sidebar → Apps → Cost Signals, with an unread count) and the channel shows only a one-line
+  default "DM to the founder", all of that appears in the **Smoke Signal direct message**
+  (sidebar → Apps → Smoke Signal, with an unread count) and the channel shows only a one-line
   pointer on each affected alert. The cash message also carries the cash-in question for any
   large unclassified inflow.
 - `/settings`: per-type threshold table, vendor classification overrides, *Reset demo*. Save

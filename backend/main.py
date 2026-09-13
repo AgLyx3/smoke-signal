@@ -33,7 +33,7 @@ log = logging.getLogger("cost_signals")
 DATA_DIR = Path(__file__).parent / "data"
 
 # Vercel Services does not strip the /api prefix, so every route carries it.
-app = FastAPI(title="Cost Signals API", version="0.1.0")
+app = FastAPI(title="Smoke Signal API", version="0.1.0")
 
 
 @app.get("/api/health")

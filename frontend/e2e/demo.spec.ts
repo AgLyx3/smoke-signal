@@ -91,7 +91,7 @@ test("settings shows the override and reset clears the channel", async ({ page }
   await page.getByRole("button", { name: "Connect" }).first().click();
   await expect(page.getByText("••••1234")).toBeVisible();
   await expect(page.getByText("Connected", { exact: true })).toBeVisible();
-  const stored = await page.evaluate(() => localStorage.getItem("cost-signals:connections") ?? "");
+  const stored = await page.evaluate(() => localStorage.getItem("smoke-signal:connections") ?? "");
   expect(stored).toContain("1234");
   expect(stored).not.toContain("sk-ant-demo"); // the key itself is never stored
   await page.getByRole("switch", { name: "Runway framing" }).click();
@@ -104,7 +104,7 @@ test("settings shows the override and reset clears the channel", async ({ page }
   await expect(page.getByTestId("cash-position")).toHaveCount(0);
   await expect(page.getByTestId("runway-dm-hint").first()).toContainText("direct message to Dana K.");
   await expect(page.getByTestId("dm-unread")).toHaveText("2");
-  await page.getByRole("button", { name: /^Cost Signals/ }).click();
+  await page.getByRole("button", { name: /^Smoke Signal/ }).click();
   const dmCash = page.getByTestId("cash-position").first();
   await expect(dmCash).toContainText(/Rho Treasury/);
   await expect(page.getByTestId("dm-runway")).toContainText(/weeks? of runway/);

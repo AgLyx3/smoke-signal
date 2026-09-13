@@ -29,7 +29,7 @@ function Turn({ t }: { t: ThreadTurn }) {
       <BotAvatar />
       <div className="min-w-0">
         <div className="flex items-baseline gap-1.5">
-          <span className="text-[13px] font-black">Cost Signals</span>
+          <span className="text-[13px] font-black">Smoke Signal</span>
           <span className="rounded bg-[#e8e8e8] px-1 py-px text-[10px] font-bold uppercase text-slack-muted">App</span>
           {t.source && (
             <span className="text-[10px] text-slack-muted" title="How this answer was produced">
@@ -90,7 +90,7 @@ export function ThreadPanel({
         <div className="flex gap-2">
           <BotAvatar />
           <div className="min-w-0">
-            <div className="text-[13px] font-black">Cost Signals</div>
+            <div className="text-[13px] font-black">Smoke Signal</div>
             <div className="text-sm">
               <span className="font-bold">{finding.vendor}</span> · {KIND_LABEL[finding.kind]} ·{" "}
               <span className="tabular-nums">{moneyCompact(finding.impact_monthly)}</span>

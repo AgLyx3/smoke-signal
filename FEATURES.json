@@ -1,5 +1,5 @@
 {
-  "project": "rho-cost-signal",
+  "project": "smoke-signal",
   "spec": "DESIGN.md",
   "updated": "2026-09-12",
   "rules": [
@@ -23,7 +23,7 @@
         "On the production deploy, GET <url>/api/health returns 200 with the pandas version and GET <url>/ shows both probes; the cold-start latency of the first /api/health call is recorded in PROGRESS.md."
       ],
       "status": "passing",
-      "evidence": "2026-09-12: vercel dev -L: /api/health 200 {ok,pandas 3.0.5}, POST /api/run 200, GET / 200 with probe page. npm run types regenerated api-types.ts (483 lines), tsc --noEmit clean, next build clean. Prod https://rho-cost-signal.vercel.app: first /api/health 200 in 0.23 s, warm 0.10 s; browser shows both probes (40 ms / 43 ms). Cold start recorded in PROGRESS.md."
+      "evidence": "2026-09-12: vercel dev -L: /api/health 200 {ok,pandas 3.0.5}, POST /api/run 200, GET / 200 with probe page. npm run types regenerated api-types.ts (483 lines), tsc --noEmit clean, next build clean. Prod https://smoke-signal.vercel.app: first /api/health 200 in 0.23 s, warm 0.10 s; browser shows both probes (40 ms / 43 ms). Cold start recorded in PROGRESS.md."
     },
     {
       "id": "data-synthetic",
@@ -89,7 +89,7 @@
         "Same flow on the production URL after deploy, with the first call warmed."
       ],
       "status": "passing",
-      "evidence": "2026-09-12 local (vercel dev -L, browser pane): all of step 1 observed, page text captured. Production (https://rho-cost-signal.vercel.app, deploy 3ea4bca): /api/health 0.24 s cold; POST /api/run inject-1 0.81 s cold / 0.63 s warm with the five expected findings; browser: Load history → report; New charges → both alerts; 'No, it's usage-based' → confirmation line + re-run; Month closes → two 'Open since Sep 5' items and 'Renewal coming up' present. Narration source was template (no key)."
+      "evidence": "2026-09-12 local (vercel dev -L, browser pane): all of step 1 observed, page text captured. Production (https://smoke-signal.vercel.app, deploy 3ea4bca): /api/health 0.24 s cold; POST /api/run inject-1 0.81 s cold / 0.63 s warm with the five expected findings; browser: Load history → report; New charges → both alerts; 'No, it's usage-based' → confirmation line + re-run; Month closes → two 'Open since Sep 5' items and 'Renewal coming up' present. Narration source was template (no key)."
     },
     {
       "id": "e2e-playwright",
@@ -100,14 +100,14 @@
         "A deliberately broken expectation (e.g. 'Open since Sep 5' count 3) fails the run."
       ],
       "status": "passing",
-      "evidence": "2026-09-12 against https://rho-cost-signal.vercel.app with live Claude: 2 passed in 1.1 min (43.2 s + 19.6 s). The first run failed on a real strict-mode ambiguity (two 'Price change' rows: Figma and an LLM-classified O'Reilly Media at $49) — evidence that classifying every small unknown vendor lets 'always report price changes' leak noise; fixed by the classification floor and `.first()`."
+      "evidence": "2026-09-12 against https://smoke-signal.vercel.app with live Claude: 2 passed in 1.1 min (43.2 s + 19.6 s). The first run failed on a real strict-mode ambiguity (two 'Price change' rows: Figma and an LLM-classified O'Reilly Media at $49) — evidence that classifying every small unknown vendor lets 'always report price changes' leak noise; fixed by the classification floor and `.first()`."
     },
     {
       "id": "settings-connections",
       "area": "frontend",
       "description": "Settings → Connections: opt-in provider usage keys (Anthropic, OpenAI; masked tail stored, never the key) and a runway-framing toggle with its own destination (founder DM by default, or the channel). State persists, clears on Reset; not wired into detection or narration by decision.",
       "verify": [
-        "In /settings: enter a key with the right prefix → row shows Connected and ••••<last4>; localStorage `cost-signals:connections` contains the last four characters and not the key; a wrong prefix shows an inline error and stores nothing.",
+        "In /settings: enter a key with the right prefix → row shows Connected and ••••<last4>; localStorage `smoke-signal:connections` contains the last four characters and not the key; a wrong prefix shows an inline error and stores nothing.",
         "Toggle Runway framing → the delivery radios appear with 'Direct message to the founder' checked and a recipient select; choose the channel; reload → both the connection and the choice persist; Reset demo clears them.",
         "Covered by `npm run test:e2e` (settings test) and no horizontal overflow."
       ],
@@ -129,10 +129,10 @@
     {
       "id": "cash-position-runway",
       "area": "demo",
-      "description": "CFO framing from Rho's own accounts: synthetic operating + treasury balances (data/accounts.json) → net burn (trailing spend − trailing cash in) → runway; per-finding runway_weeks_delta; a cash card with the treasury arithmetic (buffer months, APY as stated assumptions); a cash-in question for large unclassified inflows (customer / funding / refund) whose answer re-runs net burn. Fatigue rules: runway on alerts only when ≥ 1 week; the treasury paragraph on the first look and then only on news (shortfall, or idle cash ≥ 2 months of burn); otherwise a one-line runway status. Delivery: with 'DM to the founder' (default) all runway detail goes to the Cost Signals app DM (unread badge) and the channel stays dollars-only with a pointer; with 'the channel' it appears inline.",
+      "description": "CFO framing from Rho's own accounts: synthetic operating + treasury balances (data/accounts.json) → net burn (trailing spend − trailing cash in) → runway; per-finding runway_weeks_delta; a cash card with the treasury arithmetic (buffer months, APY as stated assumptions); a cash-in question for large unclassified inflows (customer / funding / refund) whose answer re-runs net burn. Fatigue rules: runway on alerts only when ≥ 1 week; the treasury paragraph on the first look and then only on news (shortfall, or idle cash ≥ 2 months of burn); otherwise a one-line runway status. Delivery: with 'DM to the founder' (default) all runway detail goes to the Smoke Signal app DM (unread badge) and the channel stays dollars-only with a pointer; with 'the channel' it appears inline.",
       "verify": [
         "`cd backend && uv run pytest tests/test_cash.py`: runway/sweep arithmetic on fixed inputs (21.7 mo, $1.0M sweep, upside $3,166.67/mo), shortfall case, inflow window (three complete months before the evaluated month, settled only), a $200K wire is asked about and 'funding' removes it from cash in and is not re-asked, runway delta sign and size, renewals excluded, no accounts → no cash block.",
-        "`npm run test:e2e` settings test: Runway framing on with DM delivery → channel has no runway text or cash card, alerts show 'Runway impact sent by direct message to Dana K.', the Cost Signals app shows 2 unread; opening it shows the cash position with Rho Treasury and the runway lines, badge clears; answering 'No, it's funding' on the $200,000 inflow lowers the runway months; switching delivery to the channel puts weeks of runway and the cash card inline.",
+        "`npm run test:e2e` settings test: Runway framing on with DM delivery → channel has no runway text or cash card, alerts show 'Runway impact sent by direct message to Dana K.', the Smoke Signal app shows 2 unread; opening it shows the cash position with Rho Treasury and the runway lines, badge clears; answering 'No, it's funding' on the $200,000 inflow lowers the runway months; switching delivery to the channel puts weeks of runway and the cash card inline.",
         "Local check of the demo data: history → runway 25.2 mo, $1.19M idle above the 3-month buffer ≈ $3,768/mo; after 'funding' on the $200K wire → 21.5 mo, cash in $0, $990K idle ≈ $3,135/mo; inject-2 → status line only (idle 1.6 mo); Anthropic ≈ 2.3 weeks, Pinecone ≈ 1.6 weeks, Loom −0.3 (hidden)."
       ],
       "status": "passing",

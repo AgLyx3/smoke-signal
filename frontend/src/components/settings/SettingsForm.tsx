@@ -93,7 +93,7 @@ export function SettingsForm() {
       <header className="border-b border-slack-border bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-slack-muted">Cost Signals</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-slack-muted">Smoke Signal</div>
             <h1 className="text-xl font-bold">Settings</h1>
           </div>
           <Link href="/" className="text-sm text-slack-link hover:underline">
