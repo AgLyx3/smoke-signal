@@ -11,5 +11,8 @@ Session log. Read at session start alongside `DESIGN.md`, `CLAUDE.md`, `FAILURES
   `features-auditor` subagents, `FEATURES.json` + `scripts/features.mjs`, `FAILURES.md` format.
 - Git: `main` holds setup; every feature is built in its own worktree under
   `../rho-cost-signal-worktrees/`.
-- **Next:** write `DESIGN.md` from the brainstorming session, then fill `FEATURES.json` with
-  verify steps. No app code until the user approves the design.
+- `DESIGN.md` written and confirmed section by section (understanding, data, detection, UI,
+  eval, plan). A5 (Vercel Services for Next.js + FastAPI) checked against Vercel docs, not yet
+  exercised.
+- **Next:** user reviews the A5 result and says "build". Then worktree `scaffold` (§10 row 0),
+  and `FEATURES.json` rows with verify steps in the same change.
