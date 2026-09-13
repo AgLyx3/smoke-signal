@@ -1,5 +1,8 @@
-import { longDate, money, moneyCompact, pct } from "@/lib/format";
-import type { Connections } from "@/lib/store";
+"use client";
+
+import { answerInflow, useBusy } from "@/lib/demo-actions";
+import { longDate, money, moneyCompact, pct, shortDate } from "@/lib/format";
+import { type Connections, type InflowKind, useDemoState } from "@/lib/store";
 import type { Findings } from "@/lib/types";
 
 // The CFO line the bank can say without asking anyone: runway from both Rho accounts, and what
@@ -92,7 +95,7 @@ export function CashCard({ findings, runway }: { findings: Findings; runway: Run
           <span className="text-[11px] text-slack-muted">Net burn</span> {moneyCompact(c.net_burn_monthly, { sign: false })}
           <span className="text-slack-muted">
             {" "}
-            (spend {moneyCompact(findings.trailing_monthly_spend, { sign: false })} − inflows{" "}
+            (spend {moneyCompact(findings.trailing_monthly_spend, { sign: false })} − cash in{" "}
             {moneyCompact(c.monthly_inflows, { sign: false })})
           </span>
         </span>
@@ -116,10 +119,73 @@ export function CashCard({ findings, runway }: { findings: Findings; runway: Run
           <>That matches the {buffer}-month buffer.</>
         )}
       </p>
+      <InflowAsk findings={findings} />
       <p className="mt-1 text-[11px] text-slack-muted">
-        Balances from Rho accounts; inflows are the trailing 3-month average of settled credits. Buffer and yield are assumptions,
-        editable in Settings.
+        Balances from Rho accounts; cash in is the trailing 3-month average of settled credits (customer payments and other
+        receipts, not recognised revenue). Buffer and yield are assumptions, editable in Settings.
       </p>
+    </div>
+  );
+}
+
+const INFLOW_ANSWERS: { kind: InflowKind; label: string }[] = [
+  { kind: "customer", label: "Yes, a customer payment" },
+  { kind: "funding", label: "No, it's funding" },
+  { kind: "refund", label: "A refund or transfer" },
+];
+
+const INFLOW_KIND_LABEL: Record<InflowKind, string> = {
+  customer: "a customer payment",
+  funding: "funding, not counted as cash in",
+  refund: "a refund, not counted as cash in",
+  transfer: "a transfer, not counted as cash in",
+  other: "other, not counted as cash in",
+};
+
+/** Ask-when-it-matters for cash in: a large unclassified inflow gets one question, and the
+ *  answer re-runs net burn and runway. A wire is a wire until someone says what it was. */
+function InflowAsk({ findings }: { findings: Findings }) {
+  const { inflowOverrides } = useDemoState();
+  const busy = useBusy();
+  const c = findings.cash;
+  if (!c) return null;
+  const answered = c.inflows.filter((i) => inflowOverrides[i.id] && i.amount >= 0.05 * findings.trailing_monthly_spend);
+  const open = c.inflow_ask.filter((i) => !inflowOverrides[i.id]);
+  if (open.length === 0 && answered.length === 0) return null;
+  return (
+    <div className="mt-2 space-y-2" data-testid="inflow-ask">
+      {open.map((i) => (
+        <div key={i.id} className="rounded-md border border-slack-border bg-slack-hover px-3 py-2">
+          <p className="text-sm font-medium">
+            We&apos;re counting the {money(i.amount)} {i.counterparty ? `from ${i.counterparty} ` : ""}on {shortDate(i.date)} as
+            cash in, a customer payment. Right?
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {INFLOW_ANSWERS.map((a, idx) => (
+              <button
+                key={a.kind}
+                type="button"
+                disabled={busy}
+                onClick={() => void answerInflow(i.id, a.kind)}
+                className={
+                  idx === 0
+                    ? "rounded bg-slack-green px-3 py-1 text-sm font-bold text-white hover:bg-[#148567] disabled:opacity-60"
+                    : "rounded border border-[#bbb] bg-white px-3 py-1 text-sm font-bold hover:bg-[#f0f0f0] disabled:opacity-60"
+                }
+              >
+                {a.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+      {answered.map((i) => (
+        <p key={i.id} className="flex items-center gap-2 text-xs text-emerald-800">
+          <span aria-hidden>✓</span>
+          Got it. The {money(i.amount)} on {shortDate(i.date)} is {INFLOW_KIND_LABEL[inflowOverrides[i.id]]}; net burn and runway
+          re-computed.
+        </p>
+      ))}
     </div>
   );
 }

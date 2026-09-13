@@ -112,7 +112,9 @@ export function ReportMessage({
   replyCount?: (findingId: string) => number;
   runway?: RunwayPrefs;
 }) {
-  const showRunway = Boolean(runway?.enabled);
+  // The cash position shows in the channel only when Settings routes runway detail there; with
+  // "DM to the founder" it appears in the Cost Signals direct message instead.
+  const showRunway = Boolean(runway?.enabled) && runway?.delivery === "channel";
   const textById = new Map<string, string>();
   if (report) {
     report.needs_attention.forEach((t) => textById.set(t.finding_id, t.text));

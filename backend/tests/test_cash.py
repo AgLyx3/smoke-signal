@@ -62,6 +62,24 @@ def test_inflows_use_only_the_three_complete_months_before_eval_and_only_settled
     assert monthly_inflows(df, eval_month=2026 * 12 + 8) == pytest.approx(30_000)
 
 
+def test_large_unclassified_inflow_is_asked_about_and_funding_is_not_counted():
+    from models import InflowOverride
+
+    df = frame_from_transactions([_inflow("2026-06-10", 30_000), _inflow("2026-07-15", 200_000)])
+    cash = cash_position(df, date(2026, 8, 31), 480_000, _accounts(2_350_000, 7_400_000), 3.0, 0.038)
+    assert cash is not None
+    assert [i.amount for i in cash.inflow_ask] == [200_000, 30_000]  # both clear 5% of $480K ($24K); largest first
+    assert cash.monthly_inflows == pytest.approx((30_000 + 200_000) / 3)
+    wire_id = cash.inflow_ask[0].id
+    answered = cash_position(
+        df, date(2026, 8, 31), 480_000, _accounts(2_350_000, 7_400_000), 3.0, 0.038, [InflowOverride(id=wire_id, kind="funding")]
+    )
+    assert answered is not None and [i.amount for i in answered.inflow_ask] == [30_000]  # answered ones are not re-asked
+    assert answered.monthly_inflows == pytest.approx(10_000)  # only the customer-sized $30K counts now
+    assert answered.net_burn_monthly > cash.net_burn_monthly and (answered.runway_months or 0) < (cash.runway_months or 0)
+    assert next(i for i in answered.inflows if i.id == wire_id).counted is False
+
+
 def test_runway_weeks_delta_sign_and_size():
     # $9.75M cash, $450K burn: 21.67 months. +$9,578/mo -> 21.21 months: about 2.0 weeks lost.
     lost = runway_weeks_delta(9_750_000, 450_000, 9_578.47)

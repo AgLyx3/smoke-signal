@@ -96,13 +96,42 @@ test("settings shows the override and reset clears the channel", async ({ page }
   expect(stored).not.toContain("sk-ant-demo"); // the key itself is never stored
   await page.getByRole("switch", { name: "Runway framing" }).click();
   await expect(page.getByRole("radio", { name: /Direct message to the founder/ })).toBeChecked();
+
+  // Runway framing on, routed to the founder's DM: the channel stays dollars-only, the Cost
+  // Signals direct message carries the cash position and the runway lines.
+  await page.goto("/");
+  await expect(page.getByTestId("runway-weeks")).toHaveCount(0);
+  await expect(page.getByTestId("cash-position")).toHaveCount(0);
+  await expect(page.getByTestId("runway-dm-hint").first()).toContainText("direct message to Dana K.");
+  await expect(page.getByTestId("dm-unread")).toHaveText("2");
+  await page.getByRole("button", { name: /^Cost Signals/ }).click();
+  const dmCash = page.getByTestId("cash-position").first();
+  await expect(dmCash).toContainText(/Rho Treasury/);
+  await expect(page.getByTestId("dm-runway")).toContainText(/weeks? of runway/);
+  await expect(page.getByTestId("dm-unread")).toHaveCount(0);
+  await noHorizontalOverflow(page);
+
+  // Cash in gets the same ask: the $200K wire is asked about; "funding" removes it from net burn,
+  // so runway drops and the question does not come back.
+  const before = Number((await dmCash.textContent())?.match(/Runway\s+(\d+\.\d) months/)?.[1]);
+  await expect(dmCash.getByTestId("inflow-ask")).toContainText("$200,000");
+  await dmCash.getByRole("button", { name: "No, it's funding" }).click();
+  await expect(dmCash.getByText(/is funding, not counted as cash in/)).toBeVisible({ timeout: 60_000 });
+  await expect(dmCash.getByRole("button", { name: "No, it's funding" })).toHaveCount(0);
+  // The re-run is async; poll until the cash card shows the recomputed runway.
+  await expect
+    .poll(async () => Number((await dmCash.textContent())?.match(/Runway\s+(\d+\.\d) months/)?.[1]), { timeout: 60_000 })
+    .toBeLessThan(before);
+  await page.getByRole("button", { name: "spend-signals" }).click();
+  await expect(page.getByText(/Anthropic is running well above its trend/)).toBeVisible();
+
+  // Routed to the channel instead: alerts state weeks of runway, reports carry the cash position.
+  await page.goto("/settings");
   await page.getByRole("radio", { name: /#spend-signals channel/ }).check();
   await page.reload();
   await expect(page.getByText("••••1234")).toBeVisible();
   await expect(page.getByRole("radio", { name: /#spend-signals channel/ })).toBeChecked();
   await noHorizontalOverflow(page);
-
-  // Runway framing on: alerts state weeks of runway, reports carry the cash position.
   await page.goto("/");
   await expect(page.getByTestId("runway-weeks").first()).toContainText(/weeks? of runway/);
   await expect(page.getByText("Runway detail → #spend-signals").first()).toBeVisible();

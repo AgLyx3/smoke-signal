@@ -63,7 +63,15 @@ export type DemoState = {
   pendingRerun: string | null;
   connections: Connections;
   threads: Record<string, ThreadTurn[]>;
+  /** Which Slack surface is open: the channel, or the direct message with the Cost Signals app. */
+  view: "channel" | "dm";
+  /** How many DM messages the founder has seen; the sidebar badge is the rest. */
+  dmSeen: number;
+  /** Answers to "what was this inflow?" by transaction id; only customer payments count as cash in. */
+  inflowOverrides: Record<string, InflowKind>;
 };
+
+export type InflowKind = "customer" | "funding" | "refund" | "transfer" | "other";
 
 const KEYS: Record<keyof DemoState, string> = {
   stage: `${PREFIX}stage`,
@@ -76,6 +84,9 @@ const KEYS: Record<keyof DemoState, string> = {
   pendingRerun: `${PREFIX}pendingRerun`,
   connections: `${PREFIX}connections`,
   threads: `${PREFIX}threads`,
+  view: `${PREFIX}view`,
+  dmSeen: `${PREFIX}dmSeen`,
+  inflowOverrides: `${PREFIX}inflowOverrides`,
 };
 
 export const DEFAULT_STATE: DemoState = {
@@ -89,6 +100,9 @@ export const DEFAULT_STATE: DemoState = {
   pendingRerun: null,
   connections: DEFAULT_CONNECTIONS,
   threads: {},
+  view: "channel",
+  dmSeen: 0,
+  inflowOverrides: {},
 };
 
 function readKey<T>(key: string, fallback: T): T {

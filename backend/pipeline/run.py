@@ -12,6 +12,7 @@ from models import (
     Config,
     Finding,
     Findings,
+    InflowOverride,
     OpenIssue,
     Override,
     Period,
@@ -144,6 +145,7 @@ def run_pipeline(
     classify_unknown: ClassifyHook | None = None,
     stage: str = "history",
     accounts: dict | None = None,
+    inflow_overrides: list[InflowOverride] | None = None,
 ) -> Findings:
     config = config or DEFAULT_CONFIG
     overrides = overrides or []
@@ -210,7 +212,7 @@ def run_pipeline(
 
     data_start = spend["date"].min().date() if len(spend) else None
     # Cash position from Rho's own accounts: runway per finding only when balances are known.
-    cash = cash_position(df, as_of, trailing, accounts, config.buffer_months, config.treasury_apy)
+    cash = cash_position(df, as_of, trailing, accounts, config.buffer_months, config.treasury_apy, inflow_overrides or [])
     attach_runway(findings, cash)
     return Findings(
         stage=stage,

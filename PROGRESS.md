@@ -190,9 +190,25 @@ or `FEATURES.json`; the integrator reviews, re-runs their tests, records evidenc
   full card on the first look and whenever there is news (a buffer shortfall, or idle cash above
   the buffer ≥ 2 months of net burn), otherwise a one-line runway status. Buffer months and APY
   are editable in Settings → Connections and applied client-side (no rerun).
-- Demo data outcome: first look → full card (operating 5.2 mo of burn, ~$1.0M above the 3-month
-  buffer, ≈ $3.2K/mo at 3.8%); Sep 30 → status line only (sweep $669K = 1.6 mo, no news);
-  Anthropic ≈ 2.2 weeks, Pinecone ≈ 1.5 weeks; Loom, Figma, Notion stay dollars-only.
+- Demo data outcome: first look → full card (operating 6.1 mo of burn, ~$1.2M above the 3-month
+  buffer, ≈ $3.8K/mo at 3.8%); Sep 30 → status line only (sweep $669K = 1.6 mo, no news);
+  Anthropic ≈ 2.3 weeks, Pinecone ≈ 1.6 weeks; Loom, Figma, Notion stay dollars-only.
+- **Process slip:** the first V1.1 cut (`4d14811`) was merged and deployed without the user's
+  approval of the branch. The user chose to review it live rather than roll back. From here every
+  merge and deploy waits for an explicit yes.
+- User review: "DM to the founder" did nothing, and the DM should be with the Cost Signals app,
+  not a person. Built: `view` (channel | dm) in the store, a clickable sidebar (`#spend-signals`,
+  Apps → Cost Signals with an unread badge), `DmView` deriving messages from the loaded stages
+  (`lib/dm.ts`): the cash card for reports, one runway line per material alert. With DM delivery
+  the channel loses all runway text (alert cards get a one-line pointer, reports no cash card).
+- User: "for cash, asking clarifying questions is acceptable too." Built the cash-in ask: an
+  unclassified inflow ≥ 5% of monthly spend appears in the cash message with customer / funding /
+  refund buttons; `InflowOverride` by transaction id travels in `RunRequest.inflow_overrides`,
+  funding/refund/transfer stop counting as cash in, and the answer is not re-asked. Demo data:
+  the $200K Globex wire (Jul 15) → "funding" moves runway 25.2 → 21.5 months. "Cash in" replaces
+  "inflows" in the copy, with a note that it is receipts, not recognised revenue.
+- Suite 121, eval 24/24, tsc/lint/build clean, settings e2e 1 passed locally. **Awaiting the
+  user's approval to commit, merge and deploy.**
 
 ## Demo runbook
 

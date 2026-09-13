@@ -1,5 +1,9 @@
+"use client";
+
+import { dmUnread } from "@/lib/dm";
+import { setState, useDemoState } from "@/lib/store";
+
 const CHANNELS = ["general", "engineering", "finance", "spend-signals", "random"];
-const SELECTED = "spend-signals";
 const DMS: { name: string; online: boolean }[] = [
   { name: "Dana K.", online: true },
   { name: "Sam O.", online: true },
@@ -16,6 +20,10 @@ function SectionTitle({ children }: { children: string }) {
 }
 
 export function Sidebar() {
+  const state = useDemoState();
+  const unread = dmUnread(state);
+  const inDm = state.view === "dm";
+
   return (
     <nav className="flex w-64 shrink-0 flex-col bg-slack-sidebar text-slack-sidebar-text">
       <div className="flex h-12 items-center justify-between border-b border-white/10 px-4">
@@ -40,19 +48,23 @@ export function Sidebar() {
         <SectionTitle>Channels</SectionTitle>
         <ul>
           {CHANNELS.map((c) => {
-            const selected = c === SELECTED;
+            const selected = c === "spend-signals" && !inDm;
+            const live = c === "spend-signals";
             return (
-              <li
-                key={c}
-                aria-current={selected ? "page" : undefined}
-                className={`mx-2 flex items-center gap-2 rounded px-2 py-[3px] ${
-                  selected ? "bg-slack-selected font-medium text-white" : "hover:bg-white/10"
-                }`}
-              >
-                <span aria-hidden className="w-3 text-center opacity-70">
-                  #
-                </span>
-                {c}
+              <li key={c}>
+                <button
+                  type="button"
+                  onClick={live ? () => setState({ view: "channel" }) : undefined}
+                  aria-current={selected ? "page" : undefined}
+                  className={`mx-2 flex w-[calc(100%-1rem)] items-center gap-2 rounded px-2 py-[3px] text-left ${
+                    selected ? "bg-slack-selected font-medium text-white" : "hover:bg-white/10"
+                  }`}
+                >
+                  <span aria-hidden className="w-3 text-center opacity-70">
+                    #
+                  </span>
+                  {c}
+                </button>
               </li>
             );
           })}
@@ -79,9 +91,24 @@ export function Sidebar() {
 
         <SectionTitle>Apps</SectionTitle>
         <ul>
-          <li className="mx-2 flex items-center gap-2 rounded px-2 py-[3px] hover:bg-white/10">
-            <span aria-hidden className="h-4 w-4 rounded-sm bg-gradient-to-br from-indigo-500 to-violet-600" />
-            Cost Signals
+          <li>
+            <button
+              type="button"
+              onClick={() => setState({ view: "dm" })}
+              aria-current={inDm ? "page" : undefined}
+              aria-label={unread > 0 ? `Cost Signals, ${unread} unread` : "Cost Signals"}
+              className={`mx-2 flex w-[calc(100%-1rem)] items-center gap-2 rounded px-2 py-[3px] text-left ${
+                inDm ? "bg-slack-selected font-medium text-white" : unread > 0 ? "font-bold text-white hover:bg-white/10" : "hover:bg-white/10"
+              }`}
+            >
+              <span aria-hidden className="h-4 w-4 rounded-sm bg-gradient-to-br from-indigo-500 to-violet-600" />
+              Cost Signals
+              {unread > 0 && (
+                <span className="ml-auto rounded-full bg-[#e01e5a] px-1.5 text-[11px] font-bold text-white" data-testid="dm-unread">
+                  {unread}
+                </span>
+              )}
+            </button>
           </li>
         </ul>
       </div>

@@ -59,6 +59,7 @@ def run(req: RunRequest) -> Findings:
         classify_unknown=classify_unknown,
         stage=req.stage,
         accounts=load_accounts(DATA_DIR, req.stage),
+        inflow_overrides=req.inflow_overrides,
     )
 
 

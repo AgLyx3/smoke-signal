@@ -196,7 +196,8 @@ export interface components {
         /**
          * CashPosition
          * @description What the bank can say without asking: runway from total cash and net burn, and what the
-         *     operating balance allows. All arithmetic, assumptions stated.
+         *     operating balance allows. All arithmetic, assumptions stated. Inflows are cash receipts, not
+         *     revenue: a large unclassified one is asked about (`inflow_ask`), and the answer changes net burn.
          */
         CashPosition: {
             /**
@@ -248,6 +249,18 @@ export interface components {
              * @description sweep × APY / 12
              */
             treasury_upside_monthly: number;
+            /**
+             * Inflows
+             * @description Settled inflows in the averaging window
+             * @default []
+             */
+            inflows: components["schemas"]["InflowItem"][];
+            /**
+             * Inflow Ask
+             * @description Unclassified inflows large enough to ask about
+             * @default []
+             */
+            inflow_ask: components["schemas"]["InflowItem"][];
         };
         /** Config */
         Config: {
@@ -422,6 +435,43 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** InflowItem */
+        InflowItem: {
+            /** Id */
+            id: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Amount */
+            amount: number;
+            /** Counterparty */
+            counterparty: string;
+            /**
+             * Kind
+             * @default unclassified
+             */
+            kind: ("customer" | "funding" | "refund" | "transfer" | "other") | "unclassified";
+            /**
+             * Counted
+             * @description Counted as cash in (customer or unclassified); funding, refunds and transfers are not
+             */
+            counted: boolean;
+        };
+        /**
+         * InflowOverride
+         * @description The founder's answer to "what was this inflow?". Only customer payments count as cash in.
+         */
+        InflowOverride: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "customer" | "funding" | "refund" | "transfer" | "other";
+        };
         /** NarrateRequest */
         NarrateRequest: {
             findings: components["schemas"]["Findings"];
@@ -540,6 +590,11 @@ export interface components {
              * @default []
              */
             open_issues: components["schemas"]["OpenIssue"][];
+            /**
+             * Inflow Overrides
+             * @default []
+             */
+            inflow_overrides: components["schemas"]["InflowOverride"][];
         };
         /** TypeThreshold */
         TypeThreshold: {

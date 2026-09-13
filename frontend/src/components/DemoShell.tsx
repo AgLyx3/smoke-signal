@@ -4,6 +4,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { answerAsk, askInThread, consumePendingRerun, runStep, setReaction, useBusy, useThreadBusy } from "@/lib/demo-actions";
 import { useDemoState } from "@/lib/store";
 import type { Stage } from "@/lib/types";
+import { DmView } from "./DmView";
 import { MessageList } from "./MessageList";
 import { PresenterBar } from "./PresenterBar";
 import { ThreadPanel } from "./ThreadPanel";
@@ -44,19 +45,25 @@ export function DemoShell({ topBar, sidebar }: { topBar: ReactNode; sidebar: Rea
       <div className="flex min-h-0 flex-1">
         {sidebar}
         <main className="flex min-w-0 flex-1 flex-col bg-white">
-          <ChannelHeader />
-          <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-            <MessageList
-              state={state}
-              busy={busy}
-              busyLabel={busyLabel}
-              onReact={setReaction}
-              onAnswer={(vendor, costType) => void answerAsk(vendor, costType)}
-              onOpenThread={(stage, findingId) => setThread({ stage, findingId })}
-              openThreadId={thread?.findingId ?? null}
-            />
-          </div>
-          <Composer />
+          {state.view === "dm" ? (
+            <DmView state={state} />
+          ) : (
+            <>
+              <ChannelHeader />
+              <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+                <MessageList
+                  state={state}
+                  busy={busy}
+                  busyLabel={busyLabel}
+                  onReact={setReaction}
+                  onAnswer={(vendor, costType) => void answerAsk(vendor, costType)}
+                  onOpenThread={(stage, findingId) => setThread({ stage, findingId })}
+                  openThreadId={thread?.findingId ?? null}
+                />
+              </div>
+              <Composer />
+            </>
+          )}
         </main>
         {thread && threadFinding && (
           <ThreadPanel

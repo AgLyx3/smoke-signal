@@ -65,11 +65,22 @@ class OpenIssue(BaseModel):
     impact_monthly: float
 
 
+InflowKind = Literal["customer", "funding", "refund", "transfer", "other"]
+
+
+class InflowOverride(BaseModel):
+    """The founder's answer to "what was this inflow?". Only customer payments count as cash in."""
+
+    id: str
+    kind: InflowKind
+
+
 class RunRequest(BaseModel):
     stage: Stage
     config: Config | None = None
     overrides: list[Override] = []
     open_issues: list[OpenIssue] = []
+    inflow_overrides: list[InflowOverride] = []
 
 
 class DriverShare(BaseModel):
@@ -149,9 +160,19 @@ class Period(BaseModel):
     end: date
 
 
+class InflowItem(BaseModel):
+    id: str
+    date: date
+    amount: float
+    counterparty: str
+    kind: InflowKind | Literal["unclassified"] = "unclassified"
+    counted: bool = Field(description="Counted as cash in (customer or unclassified); funding, refunds and transfers are not")
+
+
 class CashPosition(BaseModel):
     """What the bank can say without asking: runway from total cash and net burn, and what the
-    operating balance allows. All arithmetic, assumptions stated."""
+    operating balance allows. All arithmetic, assumptions stated. Inflows are cash receipts, not
+    revenue: a large unclassified one is asked about (`inflow_ask`), and the answer changes net burn."""
 
     as_of: date
     operating_balance: float
@@ -167,6 +188,8 @@ class CashPosition(BaseModel):
     shortfall_from_treasury: float = Field(description="Top-up needed to reach the buffer, 0 if none")
     treasury_apy: float
     treasury_upside_monthly: float = Field(description="sweep × APY / 12")
+    inflows: list[InflowItem] = Field(default=[], description="Settled inflows in the averaging window")
+    inflow_ask: list[InflowItem] = Field(default=[], description="Unclassified inflows large enough to ask about")
 
 
 class Findings(BaseModel):

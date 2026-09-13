@@ -104,7 +104,10 @@ export function AlertCard({
 }) {
   const f = finding;
   // Only when it is at least a week: a "0.2 weeks of runway" on every card would numb the phrase.
-  const showRunway = Boolean(runway?.enabled) && f.runway_weeks_delta != null && Math.abs(f.runway_weeks_delta) >= MIN_RUNWAY_WEEKS;
+  const runwayMaterial = Boolean(runway?.enabled) && f.runway_weeks_delta != null && Math.abs(f.runway_weeks_delta) >= MIN_RUNWAY_WEEKS;
+  // Owner-level detail goes where Settings sends it: in the channel, or only in the founder's DM.
+  const showRunway = runwayMaterial && runway?.delivery === "channel";
+  const runwayInDm = runwayMaterial && runway?.delivery === "dm";
   // "llm" was inferred from the charges; "default" means nothing classified it yet. Both are
   // unconfirmed and get the amber marker; only a user answer is confirmed.
   const inferred = f.cost_type_source === "llm" || f.cost_type_source === "default";
@@ -135,6 +138,11 @@ export function AlertCard({
         {showRunway && runway && (
           <p className="mt-1 text-[11px] text-slack-muted">
             If this rate holds. {runwayDeliveryLabel(runway)}.
+          </p>
+        )}
+        {runwayInDm && runway && (
+          <p className="mt-1 text-[11px] text-slack-muted" data-testid="runway-dm-hint">
+            Runway impact sent by direct message to {runway.recipient}
           </p>
         )}
       </div>

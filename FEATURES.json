@@ -129,14 +129,14 @@
     {
       "id": "cash-position-runway",
       "area": "demo",
-      "description": "CFO framing from Rho's own accounts: synthetic operating + treasury balances (data/accounts.json) → net burn (trailing spend − trailing inflows) → runway; per-finding runway_weeks_delta; a cash card with the treasury arithmetic (buffer months, APY as stated assumptions). Fatigue rules: runway on alerts only when ≥ 1 week; the treasury paragraph on the first look and then only on news (shortfall, or idle cash ≥ 2 months of burn); otherwise a one-line runway status.",
+      "description": "CFO framing from Rho's own accounts: synthetic operating + treasury balances (data/accounts.json) → net burn (trailing spend − trailing cash in) → runway; per-finding runway_weeks_delta; a cash card with the treasury arithmetic (buffer months, APY as stated assumptions); a cash-in question for large unclassified inflows (customer / funding / refund) whose answer re-runs net burn. Fatigue rules: runway on alerts only when ≥ 1 week; the treasury paragraph on the first look and then only on news (shortfall, or idle cash ≥ 2 months of burn); otherwise a one-line runway status. Delivery: with 'DM to the founder' (default) all runway detail goes to the Cost Signals app DM (unread badge) and the channel stays dollars-only with a pointer; with 'the channel' it appears inline.",
       "verify": [
-        "`cd backend && uv run pytest tests/test_cash.py`: runway/sweep arithmetic on fixed inputs (21.7 mo, $1.0M sweep, upside $3,166.67/mo), shortfall case, inflow window (three complete months before the evaluated month, settled only), runway delta sign and size, renewals excluded, no accounts → no cash block.",
-        "`npm run test:e2e` settings test: with Runway framing on, an alert shows 'weeks of runway' and the delivery label, the report shows a Runway … months line mentioning Rho Treasury; off = today's copy.",
-        "Local check of the demo data: inject-2 → net burn ≈ $412K, runway 22.6 mo, operating 4.6 mo, sweep $669K (1.6 mo → status line, not the treasury paragraph); Anthropic ≈ 2.2 weeks, Pinecone ≈ 1.5 weeks, Loom −0.3 (hidden)."
+        "`cd backend && uv run pytest tests/test_cash.py`: runway/sweep arithmetic on fixed inputs (21.7 mo, $1.0M sweep, upside $3,166.67/mo), shortfall case, inflow window (three complete months before the evaluated month, settled only), a $200K wire is asked about and 'funding' removes it from cash in and is not re-asked, runway delta sign and size, renewals excluded, no accounts → no cash block.",
+        "`npm run test:e2e` settings test: Runway framing on with DM delivery → channel has no runway text or cash card, alerts show 'Runway impact sent by direct message to Dana K.', the Cost Signals app shows 2 unread; opening it shows the cash position with Rho Treasury and the runway lines, badge clears; answering 'No, it's funding' on the $200,000 inflow lowers the runway months; switching delivery to the channel puts weeks of runway and the cash card inline.",
+        "Local check of the demo data: history → runway 25.2 mo, $1.19M idle above the 3-month buffer ≈ $3,768/mo; after 'funding' on the $200K wire → 21.5 mo, cash in $0, $990K idle ≈ $3,135/mo; inject-2 → status line only (idle 1.6 mo); Anthropic ≈ 2.3 weeks, Pinecone ≈ 1.6 weeks, Loom −0.3 (hidden)."
       ],
       "status": "passing",
-      "evidence": "2026-09-13: test_cash.py 6 passed (suite 120); inject-2 cash block as listed; e2e settings test with the runway steps passed locally against vercel dev (see PROGRESS.md for the run and the production rerun)."
+      "evidence": "2026-09-13: test_cash.py 7 passed (suite 121); browser pane: DM view with the cash position and the inflow question, 'No, it's funding' → 25.2 → 21.5 months; e2e settings test 1 passed locally against vercel dev (21.9 s). Production rerun pending the user's merge/deploy approval."
     }
   ]
 }

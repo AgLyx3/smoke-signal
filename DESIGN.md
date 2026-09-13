@@ -200,10 +200,20 @@ vercel.json: services {web: frontend/, api: backend/ main:app}; rewrite /api/(.*
     (orientation) and afterwards only on news — a buffer shortfall, or idle cash ≥ 2 months of
     net burn — otherwise a monthly report carries a one-line runway status. Delivery follows the
     Settings choice (founder DM by default) and is shown as a label on the demo cards.
-    Inflows are cash receipts, not revenue: a `wire_in` from an investor and one from a customer
-    look the same in the transaction type; production needs inflow classification (customer /
-    investor / refund / transfer) with the same ask-when-it-matters pattern, and Rho's invoicing
-    endpoints for invoiced customers.
+    **Cash in is not revenue.** A `wire_in` from an investor and one from a customer look the
+    same in the transaction type, so an unclassified inflow ≥ 5% of monthly spend gets one
+    question in the cash message ("We're counting the $200,000 from Globex Industries on Jul 15
+    as cash in, a customer payment. Right?" — customer / funding / refund or transfer). Only
+    customer payments (and unanswered ones) count toward cash in; the answer is stored by
+    transaction id, re-runs net burn and runway, and is never re-asked. Recognised revenue would
+    need Rho's invoicing endpoints on top.
+    **Delivery (user, 2026-09-13: "the DM is with the Cost Signals bot").** With "Direct message
+    to the founder" (the default), runway detail leaves the channel entirely: alert cards stay
+    dollars-only with a one-line "Runway impact sent by direct message to Dana K.", reports carry
+    no cash section, and the **Cost Signals app DM** (Apps → Cost Signals, unread badge) carries
+    the cash position and one line per material alert ("≈ 2.3 weeks of runway · Anthropic · Off
+    its trend · +$9.6K/mo"). With "the channel", everything appears inline. DM messages are
+    derived from the loaded stages, not stored twice.
 
 ## 7. UI
 
@@ -224,7 +234,11 @@ vercel.json: services {web: frontend/, api: backend/ main:app}; rewrite /api/(.*
   runway" with "If this rate holds. Runway detail → DM to Dana K."; reports gain the cash card
   (runway months, total cash = operating + treasury, net burn = spend − inflows, what the
   operating balance above the buffer could earn in Rho Treasury) on the first look and on news,
-  else a one-line runway status. Buffer months and APY are editable next to the toggle.
+  else a one-line runway status. Buffer months and APY are editable next to the toggle. With the
+  default "DM to the founder", all of that appears in the **Cost Signals direct message**
+  (sidebar → Apps → Cost Signals, with an unread count) and the channel shows only a one-line
+  pointer on each affected alert. The cash message also carries the cash-in question for any
+  large unclassified inflow.
 - `/settings`: per-type threshold table, vendor classification overrides, *Reset demo*. Save
   returns to `/` and re-runs.
 - `/settings` → **Connections** (added 2026-09-13; the PRD's progressive-disclosure ladder made

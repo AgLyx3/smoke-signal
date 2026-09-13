@@ -3,6 +3,7 @@ import { ask, getDefaultConfig, narrate, runStage } from "./api";
 import { longDate } from "./format";
 import {
   type ChannelMessage,
+  type InflowKind,
   type OpenIssueRecord,
   type StageResult,
   type ThreadTurn,
@@ -71,13 +72,25 @@ function openIssuesBefore(stage: Stage): OpenIssue[] {
     .map(({ id, vendor, kind, impact_monthly }) => ({ id, vendor, kind, impact_monthly }));
 }
 
+function inflowOverridesList(): { id: string; kind: InflowKind }[] {
+  return Object.entries(getState().inflowOverrides).map(([id, kind]) => ({ id, kind }));
+}
+
 async function buildRequest(stage: Stage): Promise<RunRequest> {
   return {
     stage,
     config: await ensureConfig(),
     overrides: overridesList(),
     open_issues: openIssuesBefore(stage),
+    inflow_overrides: inflowOverridesList(),
   };
+}
+
+/** Answer to "what was this inflow?": only customer payments count as cash in, so net burn and
+ *  runway are re-computed for every loaded stage. */
+export async function answerInflow(id: string, kind: InflowKind): Promise<void> {
+  setState({ inflowOverrides: { ...getState().inflowOverrides, [id]: kind } });
+  await rerunAll(null);
 }
 
 function appendMessages(msgs: ChannelMessage[]): void {
