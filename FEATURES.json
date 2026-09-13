@@ -137,6 +137,17 @@
       ],
       "status": "passing",
       "evidence": "2026-09-13: test_cash.py 7 passed (suite 121); browser pane: DM view with the cash position and the inflow question, 'No, it's funding' → 25.2 → 21.5 months; e2e settings test 1 passed locally against vercel dev (21.9 s). Production rerun pending the user's merge/deploy approval."
+    },
+    {
+      "id": "transaction-records-page",
+      "area": "demo",
+      "description": "/transaction-records: the raw Rho-shaped rows the pipeline reads plus the account balance strip, following the presenter's beat (defaults to the loaded stage, rows tagged and highlighted by the beat that added them, 'only what this beat added'), with account/type/text filters, paging and raw JSON per row. GET /api/transactions and GET /api/accounts.",
+      "verify": [
+        "`cd backend && uv run pytest tests/test_transactions_route.py`: newest-first raw rows with untouched minor-unit amounts and a _beat tag; by_beat counts 2484 / 51 / 181; q + type filter and disjoint paging; beat filter returns only the 51 rows New charges added (Sep dates, Anthropic's invoice among them); account filter; /api/accounts snapshot per stage; bad stage 422; limit capped at 500.",
+        "In the browser: open /transaction-records after New charges → beat defaults to 'New charges', the accounts strip shows the Sep 5 balances, the 51 new rows are highlighted, ticking 'Only what this beat added' leaves 51, clicking Operating Checking filters to checking rows, clicking a row shows its JSON."
+      ],
+      "status": "passing",
+      "evidence": "2026-09-13: test_transactions_route.py 5 passed (suite 126); vercel dev: /api/transactions?stage=inject-1&beat=inject-1 → by_beat {history 2484, inject-1 51}, matched 51; page 200 and screenshotted with the beat highlight, accounts strip and an expanded row. Production check after the user's deploy recorded in PROGRESS.md."
     }
   ]
 }

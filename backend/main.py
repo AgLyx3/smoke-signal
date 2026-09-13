@@ -1,4 +1,5 @@
 import logging
+from datetime import date
 from pathlib import Path
 
 import anthropic
@@ -12,6 +13,7 @@ from llm.client import BudgetExceededError, MissingAPIKeyError
 from llm.narrate import narrate_result, template_response
 from models import (
     DEFAULT_CONFIG,
+    AccountsResponse,
     AskRequest,
     AskResponse,
     Config,
@@ -19,10 +21,13 @@ from models import (
     NarrateRequest,
     NarrateResponse,
     RunRequest,
+    Stage,
+    TransactionsResponse,
 )
 from pipeline import load_stage, run_pipeline
 from pipeline.cash import load_accounts
 from pipeline.evidence import build_evidence, prepare_spend
+from pipeline.load import STAGES, read_envelope
 
 log = logging.getLogger("cost_signals")
 DATA_DIR = Path(__file__).parent / "data"
@@ -39,6 +44,65 @@ def health() -> dict:
 @app.get("/api/config/default", response_model=Config)
 def default_config() -> Config:
     return DEFAULT_CONFIG
+
+
+def _stage_rows(stage: Stage) -> tuple[list[dict], date, dict[str, int]]:
+    """Rows for the stage, each tagged with the demo beat (file) that added it."""
+    files, as_of = STAGES[stage]
+    rows: list[dict] = []
+    by_beat: dict[str, int] = {}
+    for name in files:
+        path = DATA_DIR / name
+        if not path.exists():
+            raise HTTPException(status_code=404, detail=f"data file {name} not found for stage {stage!r}")
+        beat = name.removesuffix(".json")
+        added = [{**r, "_beat": beat} for r in read_envelope(path)]
+        by_beat[beat] = len(added)
+        rows.extend(added)
+    return rows, as_of, by_beat
+
+
+@app.get("/api/transactions", response_model=TransactionsResponse)
+def transactions(
+    stage: Stage = "history",
+    q: str = "",
+    type: str = "",
+    account: str = "",
+    beat: str = "",
+    limit: int = 100,
+    offset: int = 0,
+) -> TransactionsResponse:
+    """The raw rows the pipeline reads, newest first, for the records page. Nothing is reshaped:
+    this is what Rho's /transactions returns, so amounts stay signed minor units. `beat` limits
+    the result to the rows one demo beat added (history, inject-1, inject-2)."""
+    rows, as_of, by_beat = _stage_rows(stage)
+    needle = q.strip().lower()
+    matched = [
+        r
+        for r in rows
+        if (not type or str(r.get("transaction_type") or "") == type)
+        and (not account or str(r.get("account_type") or "") == account)
+        and (not beat or r["_beat"] == beat)
+        and (
+            not needle
+            or any(needle in str(r.get(k) or "").lower() for k in ("counterparty_name", "memo", "user_full_name", "card_name", "id"))
+        )
+    ]
+    matched.sort(key=lambda r: str(r.get("initiated_at") or ""), reverse=True)
+    limit = max(1, min(limit, 500))
+    offset = max(0, offset)
+    return TransactionsResponse(
+        stage=stage, as_of=as_of, total=len(rows), matched=len(matched), by_beat=by_beat, transactions=matched[offset : offset + limit]
+    )
+
+
+@app.get("/api/accounts", response_model=AccountsResponse)
+def accounts(stage: Stage = "history") -> AccountsResponse:
+    """Balance snapshot for the stage, in Rho's /accounts shape."""
+    snap = load_accounts(DATA_DIR, stage)
+    if snap is None:
+        raise HTTPException(status_code=404, detail="accounts.json not found")
+    return AccountsResponse(stage=stage, as_of=date.fromisoformat(snap["as_of"]), accounts=list(snap.get("accounts") or []))
 
 
 @app.post("/api/run", response_model=Findings)

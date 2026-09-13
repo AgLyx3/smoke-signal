@@ -38,6 +38,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Transactions
+         * @description The raw rows the pipeline reads, newest first, for the records page. Nothing is reshaped:
+         *     this is what Rho's /transactions returns, so amounts stay signed minor units. `beat` limits
+         *     the result to the rows one demo beat added (history, inject-1, inject-2).
+         */
+        get: operations["transactions_api_transactions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Accounts
+         * @description Balance snapshot for the stage, in Rho's /accounts shape.
+         */
+        get: operations["accounts_api_accounts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/run": {
         parameters: {
             query?: never;
@@ -96,6 +138,26 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AccountsResponse */
+        AccountsResponse: {
+            /**
+             * Stage
+             * @enum {string}
+             */
+            stage: "history" | "inject-1" | "inject-2";
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /**
+             * Accounts
+             * @description Rho /accounts shape: id, name, account_type, balance{amount, currency}
+             */
+            accounts: {
+                [key: string]: unknown;
+            }[];
+        };
         /** AlertText */
         AlertText: {
             /** Finding Id */
@@ -596,6 +658,46 @@ export interface components {
              */
             inflow_overrides: components["schemas"]["InflowOverride"][];
         };
+        /**
+         * TransactionsResponse
+         * @description Raw Rho-shaped rows for the records page, untouched (amounts stay signed minor units).
+         */
+        TransactionsResponse: {
+            /**
+             * Stage
+             * @enum {string}
+             */
+            stage: "history" | "inject-1" | "inject-2";
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /**
+             * Total
+             * @description Rows in the stage before filtering
+             */
+            total: number;
+            /**
+             * Matched
+             * @description Rows matching the filters
+             */
+            matched: number;
+            /**
+             * By Beat
+             * @description Rows each demo beat added: history, inject-1, inject-2
+             */
+            by_beat: {
+                [key: string]: number;
+            };
+            /**
+             * Transactions
+             * @description Raw rows plus a `_beat` key naming the file that added each
+             */
+            transactions: {
+                [key: string]: unknown;
+            }[];
+        };
         /** TypeThreshold */
         TypeThreshold: {
             /**
@@ -696,6 +798,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Config"];
+                };
+            };
+        };
+    };
+    transactions_api_transactions_get: {
+        parameters: {
+            query?: {
+                stage?: "history" | "inject-1" | "inject-2";
+                q?: string;
+                type?: string;
+                account?: string;
+                beat?: string;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accounts_api_accounts_get: {
+        parameters: {
+            query?: {
+                stage?: "history" | "inject-1" | "inject-2";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

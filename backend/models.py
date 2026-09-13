@@ -2,7 +2,7 @@
 FastAPI's OpenAPI (see `npm run types` in frontend/). Change here first, then regenerate."""
 
 from datetime import date
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -268,3 +268,20 @@ class AskResponse(BaseModel):
     answer: str
     source: Literal["claude", "template"]
     evidence_used: list[str] = Field(default=[], description="Which parts of the evidence pack were available")
+
+
+class TransactionsResponse(BaseModel):
+    """Raw Rho-shaped rows for the records page, untouched (amounts stay signed minor units)."""
+
+    stage: Stage
+    as_of: date
+    total: int = Field(description="Rows in the stage before filtering")
+    matched: int = Field(description="Rows matching the filters")
+    by_beat: dict[str, int] = Field(description="Rows each demo beat added: history, inject-1, inject-2")
+    transactions: list[dict[str, Any]] = Field(description="Raw rows plus a `_beat` key naming the file that added each")
+
+
+class AccountsResponse(BaseModel):
+    stage: Stage
+    as_of: date
+    accounts: list[dict[str, Any]] = Field(description="Rho /accounts shape: id, name, account_type, balance{amount, currency}")

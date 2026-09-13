@@ -41,13 +41,20 @@ including a row count that could not distinguish a limit of 25 from 300 because 
 the five were caught by `/code-review`, not the author. Treat "my new check passed first try" as
 a smell.
 
-## 3. A test run piped through `tail` has no exit code — gate commits on the real one
+## 3. Anything piped through `tail` has no exit code — never put it in a `&&` chain
 
-**Rule:** Never chain `pytest ... | tail -n && git commit`. The pipeline's status is `tail`'s, so
-a red suite commits. Run the tests in their own command, or `set -o pipefail` and check
-`$pipestatus`, and read the summary line before the commit command runs.
+**Rule:** Never chain `<command> | tail -n && <next step>` when the next step must not run on
+failure. The pipeline's status is `tail`'s, so a red test suite commits and a conflicted
+`git merge` pushes and deploys. Run the gating command on its own, or `set -o pipefail` and check
+`$pipestatus`, and read its output before the next command runs. This applies to **every**
+gating command — tests, merges, builds — not only pytest.
 
 **Earned by:** the `llm` merge (2026-09-12) was committed and pushed to `main` with
 `test_unknown_vendor_defaults_until_hook_or_override` failing (104 passed, 1 failed) because the
 merge changed `Classification.confidence` to a Literal and a pipeline test still passed a float.
 The failure was on screen; the `&&` chain never saw it.
+
+**Earned again (2026-09-13, same author, rule already written):** `git merge records | tail -1 &&
+git push && vercel deploy --prod` hit a `PROGRESS.md` conflict; `tail` returned 0, the push sent
+only the preceding docs commit, and production was deployed from a half-merged working tree.
+Knowing the rule did not prevent it; the fix is mechanical — no pipe on a gating command.

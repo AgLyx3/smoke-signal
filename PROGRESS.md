@@ -213,6 +213,24 @@ or `FEATURES.json`; the integrator reviews, re-runs their tests, records evidenc
   $200K Globex wire in `inflow_ask`; with `inflow_overrides` funding → runway 21.5, ask empty.
   `cfo` worktree removed; no worktrees remain.
 
+## 2026-09-13 — Transaction records page (worktree `records`)
+
+- User: a bare screen showing what the transactions look like, the operating account, and tied
+  to the three beats so the delta is visible. Built `/transaction-records`: `GET /api/transactions`
+  (raw rows newest first, `_beat` tag per row, `by_beat` counts, filters q / type / account /
+  beat, paging capped at 500) and `GET /api/accounts` (the stage's balance snapshot). The page
+  follows the channel's loaded stage, highlights rows the current beat added, has "Only what this
+  beat added", an accounts strip that doubles as an account filter, and raw JSON per row.
+  Presenter bar gained a *Records* link. `tests/test_transactions_route.py` 5 tests; suite 126.
+- Answered on the way: the usage trend is log-linear (constant % growth, compounding), and it is a
+  baseline, not a forecast — decelerating or just-started vendors fit badly, few points make the
+  slope noisy (σ floor, ≥ 3 observations, confidence label), and a business-wide shift fires
+  several alerts rather than one. Calibration of predicted vs realised impact is the long-run check.
+- **Merge slip:** `git merge records | tail -1 && git push && vercel deploy` — the pipe hid the
+  merge's conflict exit (PROGRESS.md), so the push carried only the docs commit and the deploy
+  went out from a conflicted working tree. Resolved by hand, merge committed, redeployed from the
+  clean commit. FAILURES.md #3 sharpened: the rule covers every command in a chain, not just tests.
+
 ## Demo runbook (V1.1)
 
 Before: open https://rho-cost-signal.vercel.app once to warm it; `/settings` → Reset demo →
