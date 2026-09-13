@@ -94,7 +94,10 @@ export function AlertCard({
   onAnswer: (costType: CostType) => void;
 }) {
   const f = finding;
-  const inferred = f.cost_type_source === "llm";
+  // "llm" was inferred from the charges; "default" means nothing classified it yet. Both are
+  // unconfirmed and get the amber marker; only a user answer is confirmed.
+  const inferred = f.cost_type_source === "llm" || f.cost_type_source === "default";
+  const sourceMarker = f.cost_type_source === "llm" ? "inferred" : f.cost_type_source === "default" ? "unclassified" : "confirmed";
   const askOpen = f.ask_cost_type && !override;
   const others = ASKABLE.filter((c) => c !== f.cost_type);
 
@@ -159,7 +162,7 @@ export function AlertCard({
                   inferred ? "bg-amber-100 text-amber-900" : "bg-emerald-100 text-emerald-900"
                 }`}
               >
-                {inferred ? "inferred" : "confirmed"}
+                {sourceMarker}
               </span>
               <span
                 role="tooltip"

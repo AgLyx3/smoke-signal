@@ -107,6 +107,11 @@ export interface components {
             last_price?: number | null;
             /** Cost Per Head */
             cost_per_head?: number | null;
+            /**
+             * Headcount Proxy
+             * @description Cardholder proxy used for the evaluated month
+             */
+            headcount_proxy?: number | null;
         };
         /** Config */
         Config: {
@@ -114,6 +119,12 @@ export interface components {
             thresholds: {
                 [key: string]: components["schemas"]["TypeThreshold"];
             };
+            /**
+             * Report Floor Pct
+             * @description Below this share of trailing monthly spend a change is dropped from the report, unless it is a price change, per-head rise or renewal on a vendor whose cost type is confirmed or classified
+             * @default 0.001
+             */
+            report_floor_pct: number;
         };
         /** DriverShare */
         DriverShare: {
@@ -142,7 +153,7 @@ export interface components {
              * Cost Type Source
              * @enum {string}
              */
-            cost_type_source: "taxonomy" | "llm" | "user";
+            cost_type_source: "taxonomy" | "llm" | "user" | "default";
             /**
              * Kind
              * @enum {string}
@@ -186,6 +197,11 @@ export interface components {
              * @default []
              */
             cardholders: string[];
+            /**
+             * Month
+             * @description Evaluated calendar month, YYYY-MM
+             */
+            month?: string | null;
         };
         /** Findings */
         Findings: {
@@ -206,6 +222,16 @@ export interface components {
             window_end: string;
             /** Trailing Monthly Spend */
             trailing_monthly_spend: number;
+            /**
+             * Last Monthly Spend
+             * @description Total spend in the last full month
+             */
+            last_monthly_spend?: number | null;
+            /**
+             * Prior Monthly Spend
+             * @description Total spend in the month before the last full month, for the report intro
+             */
+            prior_monthly_spend?: number | null;
             /**
              * Headcount Proxy
              * @description Distinct cardholders in the window
@@ -233,6 +259,12 @@ export interface components {
              * @enum {string}
              */
             mode: "alerts" | "report";
+            /**
+             * Open Issues
+             * @description Issues already alerted on; their vendors go under 'Needs attention' in reports
+             * @default []
+             */
+            open_issues: components["schemas"]["OpenIssue"][];
         };
         /** NarrateResponse */
         NarrateResponse: {
@@ -352,7 +384,7 @@ export interface components {
              * Cost Type Source
              * @enum {string}
              */
-            cost_type_source: "taxonomy" | "llm" | "user";
+            cost_type_source: "taxonomy" | "llm" | "user" | "default";
             /**
              * Cadence
              * @enum {string}

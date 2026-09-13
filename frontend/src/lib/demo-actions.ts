@@ -114,7 +114,7 @@ export async function runStep(stage: Stage): Promise<void> {
   try {
     const req = await buildRequest(stage);
     const findings = await runStage(req);
-    const narration = await narrate({ findings, mode: STAGE_STEP[stage].mode });
+    const narration = await narrate({ findings, mode: STAGE_STEP[stage].mode, open_issues: openIssuesBefore(stage) });
     const result: StageResult = { findings, narration };
     const asOf = findings.window_end;
     const ts = Date.now();

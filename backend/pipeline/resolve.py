@@ -67,7 +67,9 @@ def resolve_name(counterparty_name: object, taxonomy, table: dict[str, object] |
         category = getattr(entry, "category", DEFAULT_CATEGORY) if entry else DEFAULT_CATEGORY
         cost_type = getattr(entry, "cost_type", DEFAULT_COST_TYPE) if entry else DEFAULT_COST_TYPE
         return Resolution(canonical, category, cost_type, "taxonomy", True)
-    key = taxonomy.normalize(raw) or normalize_fallback(raw)
+    # Unknown vendors keep the normalised descriptor as their key, title-cased for display
+    # ("PINECONE SYSTEMS INC" -> "Pinecone Systems"); matching elsewhere goes through slug().
+    key = (taxonomy.normalize(raw) or normalize_fallback(raw)).title()
     return Resolution(key, DEFAULT_CATEGORY, DEFAULT_COST_TYPE, "default", False)
 
 

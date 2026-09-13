@@ -1,4 +1,4 @@
-import { longDate } from "@/lib/format";
+import { issueKey, longDate } from "@/lib/format";
 import type { ChannelMessage, DemoState, Reaction } from "@/lib/store";
 import type { CostType, Stage } from "@/lib/types";
 import { AlertCard } from "./AlertCard";
@@ -62,7 +62,7 @@ export function MessageList({
   const openSince = new Map<string, string>();
   openIssues.forEach((o) => {
     const end = results[o.stage]?.findings.window_end;
-    if (end) openSince.set(o.id, end);
+    if (end && !openSince.has(issueKey(o.id))) openSince.set(issueKey(o.id), end);
   });
 
   const renderBody = (m: ChannelMessage) => {

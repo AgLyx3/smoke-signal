@@ -31,6 +31,11 @@ class TypeThreshold(BaseModel):
 
 class Config(BaseModel):
     thresholds: dict[CostType, TypeThreshold]
+    report_floor_pct: float = Field(
+        default=0.001,
+        description="Below this share of trailing monthly spend a change is dropped from the report, unless it is "
+        "a price change, per-head rise or renewal on a vendor whose cost type is confirmed or classified",
+    )
 
 
 DEFAULT_CONFIG = Config(
@@ -133,8 +138,9 @@ class Findings(BaseModel):
     window_start: date
     window_end: date
     trailing_monthly_spend: float
+    last_monthly_spend: float | None = Field(default=None, description="Total spend in the last full month")
     prior_monthly_spend: float | None = Field(
-        default=None, description="Spend in the month before the last full month, for the report intro"
+        default=None, description="Total spend in the month before the last full month, for the report intro"
     )
     headcount_proxy: int = Field(description="Distinct cardholders in the window")
     findings: list[Finding]

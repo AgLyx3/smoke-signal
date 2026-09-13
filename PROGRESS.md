@@ -53,3 +53,33 @@ or `FEATURES.json`; the integrator reviews, re-runs their tests, records evidenc
   spend ≈ $486K so 1% ≈ $4.9K. The pipeline must not fit growth on `irregular` vendors.
 - Design amended on `main`: 12-month history, cardholders 34 → 42, Pinecone amounts, no prepaid in
   the data, integrator owns the scoreboard (decision log).
+- **pipeline — merged** (`48297f7`, 33 tests, 9 mutations). **llm — merged** (`6df24bf`, 34 tests,
+  3 mutations; live smoke blocked, key unset). **ui — merged** (`71cc0bd`, browser-verified on mock).
+  The llm merge reconciled the contract (one `VendorFacts`, month-keyed; `Classification.confidence`
+  is the Literal) but was pushed with one pipeline test still red because the test command was
+  piped through `tail` (FAILURES.md #3). Fixed in `integrate`.
+
+## 2026-09-12 — Integration (worktree `integrate`)
+
+- Wired `classify_unknown` into `/api/run`; classifier results cached per process; on any failure it
+  returns `{}` so unknown vendors keep `cost_type_source = "default"` and still get asked.
+  `MAX_RETRIES = 0`, timeout 20 s, budget 60 calls/process.
+- Detection tuning from the first real-data run: renewal lookahead 45 → 30 days (Vanta now appears
+  only in the monthly report); `stopped` stays visible for 2 cycles (Loom reaches the Sep 30
+  report); new `Config.report_floor_pct = 0.001` drops sub-0.1% noise (Costco stopped, Lyft/Delta
+  growth, O'Reilly price) while price/per-head/renewal on classified vendors always report; unknown
+  vendors are title-cased for display ("Pinecone Systems"). `Findings.last_monthly_spend` added so
+  the report intro compares two full months, not the trailing mean against a month.
+- Frontend: `USE_MOCK = false`; types regenerated (`CostTypeSource` gained `default`,
+  `Config.report_floor_pct`); alert marker shows `unclassified` for `default`; report matches open
+  issues by `issueKey` (vendor slug + kind) because finding ids carry the stage date — without this
+  the monthly report showed "Nothing needs attention" while the intro counted 2; tiny shares render
+  as `<0.1%`.
+- Backend suite: 106 passed. `scripts/eval_scenarios.py` labels every planted scenario per stage
+  and checks the real data (see run below).
+- Local rehearsal against `vercel dev -L` (browser pane): history → Loom + Notion; new charges →
+  Anthropic +$9.6K (2.0%) and Pinecone Systems $6.5K (1.4%) with the ask; "No, it's usage-based" →
+  override, re-run, tag CONFIRMED; month closes → both under Needs attention "Open since Sep 5",
+  Vanta / Loom / Figma / Notion under Worth knowing. Narration was `template` throughout (no key).
+- **Next:** merge `integrate` → `main` (ask), production deploy (ask), rehearse on the prod URL, then
+  the live-Claude smoke once `ANTHROPIC_API_KEY` is exported.

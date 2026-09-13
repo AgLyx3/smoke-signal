@@ -65,7 +65,7 @@ export function SettingsForm() {
   const setThreshold = (t: CostType, patch: Partial<Config["thresholds"][string]>) => {
     if (!draft) return;
     const cur = draft.config.thresholds[t] ?? { alert_pct: 0.01, alerts: true };
-    setDraft({ ...draft, config: { thresholds: { ...draft.config.thresholds, [t]: { ...cur, ...patch } } } });
+    setDraft({ ...draft, config: { ...draft.config, thresholds: { ...draft.config.thresholds, [t]: { ...cur, ...patch } } } });
   };
 
   const setOverride = (vendor: string, ct: CostType | null) => {

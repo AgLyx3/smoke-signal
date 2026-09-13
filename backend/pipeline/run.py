@@ -150,6 +150,7 @@ def run_pipeline(
         for s in stats.values()
         for c in detect_vendor(s, ctx)
     ]
+    findings = [f for f in findings if f.route != "ignore"]
     findings.sort(key=lambda f: (f.route != "alert", -abs(f.impact_monthly), f.vendor))
 
     vendors = [
@@ -177,6 +178,8 @@ def run_pipeline(
         window_start=ctx.window_start,
         window_end=as_of,
         trailing_monthly_spend=round(trailing, 2),
+        last_monthly_spend=round(totals[last_complete], 2) if last_complete in totals else None,
+        prior_monthly_spend=round(totals[last_complete - 1], 2) if (last_complete - 1) in totals else None,
         headcount_proxy=eval_headcount,
         findings=findings,
         vendors=vendors,

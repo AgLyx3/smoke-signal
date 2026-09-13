@@ -19,7 +19,8 @@ from pipeline.series import REGULAR_CADENCES, VendorStats
 GROWTH_SIGMAS = 2.0
 PRICE_CHANGE_PCT = 0.01
 STOPPED_GRACE_DAYS = 5
-RENEWAL_LOOKAHEAD_DAYS = 45
+RENEWAL_LOOKAHEAD_DAYS = 30
+STOPPED_VISIBLE_CYCLES = 2
 ANNUAL_DAYS = 365
 
 
@@ -141,13 +142,14 @@ def detect_new_vendor(stats: VendorStats, ctx: EvalContext) -> Candidate | None:
 
 
 def detect_stopped(stats: VendorStats, ctx: EvalContext) -> Candidate | None:
-    """Expected charge overdue by median gap + grace, as of `as_of`. Fires while the vendor is
-    still within one extra cycle of overdue, then goes quiet."""
+    """Expected charge overdue by median gap + grace, as of `as_of`. Stays visible for
+    STOPPED_VISIBLE_CYCLES billing cycles (so a monthly vendor that stopped mid-quarter still shows
+    in the next month-end report), then goes quiet."""
     if stats.cadence not in REGULAR_CADENCES or stats.median_gap is None or stats.last_date is None:
         return None
     gap = timedelta(days=stats.median_gap)
     due = stats.last_date + gap + timedelta(days=STOPPED_GRACE_DAYS)
-    if not (due < ctx.as_of <= due + gap):
+    if not (due < ctx.as_of <= due + STOPPED_VISIBLE_CYCLES * gap):
         return None
     months = [m for m in prior_months(ctx.eval_month + 1) if stats.total(m) > 0][-3:]
     if not months:

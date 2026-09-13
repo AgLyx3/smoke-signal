@@ -113,15 +113,29 @@ vercel.json: services {web: frontend/, api: backend/ main:app}; rewrite /api/(.*
    vendor. Money movement, rewards, treasury, repayments excluded. Only `settled` counts.
 2. **Merchant resolution:** normalise `counterparty_name` (case, `*`, legal suffixes), then an
    alias table.
-3. **Series and cadence:** group by vendor; median gap → monthly / annual / irregular; recurring
-   = ≥ 2 charges at a regular interval.
-4. **Baseline** per cost type: usage-scaling → log-linear trend (growth rate) over trailing
-   months; fixed → last price; headcount-scaling → cost per head.
-5. **Gate 1, unusual:** usage → log residual ≥ 2σ of the vendor's own residuals; fixed → price
-   change > 1%; new → second regular charge; stopped → overdue by cadence + grace;
-   headcount → cost per head above its own range.
-6. **Gate 2, material:** monthly impact (actual − expected) ≥ `config[type].alert_pct` × trailing
-   monthly spend.
+3. **Series and cadence:** group by vendor; median gap → semi-monthly / monthly / annual /
+   irregular; recurring = ≥ 2 charges at a regular interval, or present in ≥ 3 distinct months.
+   Unknown vendors keep their normalised descriptor, title-cased, as the key.
+4. **Baseline** per cost type, using only months strictly before the evaluated month (the month
+   containing `as_of`; complete iff `as_of` is its last day), window = 6 prior months, months with
+   no spend skipped: usage-scaling → log-linear trend over ≥ 3 observations, `growth_pct =
+   exp(slope) − 1`, σ = RMS of log residuals floored at 0.08; fixed → last price, only when ≥ 2
+   identical monthly totals exist; headcount-scaling → cost per head over ≥ 3 months, headcount
+   proxy = distinct cardholders with a settled card charge in the month (a partial month uses the
+   last complete month's).
+5. **Gate 1, unusual:** usage → upward log residual ≥ 2σ (partial months: only monthly-cadence
+   vendors whose charge has already posted); fixed → price change > 1%; new → the second regular
+   charge lands, first charge inside the window; stopped → overdue by median gap + 5 days grace,
+   visible for 2 cycles; headcount → cost per head above mean + max(2σ, 5%) with ≥ 4 observations,
+   else +15%; renewal → annual vendor whose anniversary is within 30 days after `as_of`; spike →
+   non-recurring vendor above its type's materiality this month.
+6. **Gate 2, material:** monthly impact (actual − expected; `new_vendor` expected = 0; `stopped`
+   impact = −expected) ≥ `config[type].alert_pct` × trailing monthly spend, where trailing = mean
+   of the last 3 complete months before the evaluated month (so inject-1 and inject-2 share a bar).
+   `stopped`, `renewal` and `spike` never alert. Below the alert bar, a change must still clear
+   `config.report_floor_pct` (default 0.1% of monthly spend) to appear in the report, except price
+   changes, per-head rises and renewals on vendors whose cost type is confirmed or classified,
+   which are always listed. Fees and payroll are context only, never findings.
 
    | Cost type | Alert default | Otherwise |
    |---|---|---|
@@ -132,11 +146,21 @@ vercel.json: services {web: frontend/, api: backend/ main:app}; rewrite /api/(.*
    | Payroll | Context only | Report |
 
 7. **Route:** gate 1 + gate 2 → alert; gate 1 only → report "Worth knowing"; else ignore. An open
-   issue re-alerts only on material escalation.
-8. **Explanation facts:** driver (price / volume / new / missing / who), contribution split,
-   confidence High / Med / Low from observation count and volatility.
-9. **Ask when it matters:** the first time an unconfirmed vendor is about to appear in an alert,
-   the card asks its cost type. The answer re-runs detection with the override.
+   issue (same vendor + kind, matched by `issueKey`, not by the dated finding id) re-alerts only
+   when |impact| grew by ≥ 50% and by at least the materiality bar again; otherwise it stays a
+   report line marked ongoing.
+8. **Explanation facts:** driver (price / volume / new / missing / who), contribution split
+   (volume = charge-count component, price = mean-charge component, `who` when one cardholder
+   carries ≥ 60% of the increase), confidence High (≥ 6 obs, σ ≤ 0.15) / Med (≥ 3) / Low.
+9. **Classification precedence:** user override > taxonomy > Claude hook > default (`fixed`,
+   "Software", source `default`). The hook sees only unknown recurring vendors, is called once per
+   batch, caches per process, and returns `{}` on any failure so the vendor stays `default`.
+10. **Ask when it matters:** an alert on a vendor whose source is not `taxonomy` or `user` carries
+    the cost-type question. The answer re-runs detection with the override; narration text is not
+    re-requested (facts and chips update, prose stays).
+11. **Claude settings:** `claude-sonnet-5`, tool-schema structured output, 20 s timeout, no
+    retries; the SDK's `messages.create` exposes no `temperature`, so determinism rests on the
+    strict schema and the grounding check.
 
 ## 7. UI
 
@@ -154,8 +178,10 @@ vercel.json: services {web: frontend/, api: backend/ main:app}; rewrite /api/(.*
 
 **Proposed — pending confirmation.**
 
-- `pytest` harness over labelled fixture scenarios, each a small Rho-schema transaction set with
-  expected outcomes per (vendor, kind): `should_alert` / `should_digest` / `should_ignore`.
+- Two layers, both built: `tests/test_pipeline.py` (compact Rho-shaped fixtures, one property per
+  test, mutation-checked) and `scripts/eval_scenarios.py`, which runs the real Lumen Labs data
+  through all three stages and checks every planted scenario against its label
+  (`alert` / `report` / `ignore`) plus an allow-list per stage so unplanned findings fail the run.
 - Scenarios: growth-rate jump (alert); steady growth on trend (ignore); new vendor, material
   (alert + ask); new vendor, small (digest); fixed price creep (digest); vendor stopped (digest);
   one-off spike that reverts (ignore); hiring step change with flat cost per head (ignore); cost

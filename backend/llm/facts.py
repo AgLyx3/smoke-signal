@@ -89,14 +89,16 @@ def window_facts(findings: Findings) -> dict[str, Any]:
         "window_start": findings.window_start.isoformat(),
         "window_end": findings.window_end.isoformat(),
         "trailing_monthly_spend": round(findings.trailing_monthly_spend, 2),
+        "last_monthly_spend": findings.last_monthly_spend,
         "prior_monthly_spend": findings.prior_monthly_spend,
         "headcount_proxy_cardholders": findings.headcount_proxy,
         "vendor_count": len(findings.vendors),
         "finding_count": len(findings.findings),
         "category_totals": {k: round(v, 2) for k, v in findings.category_totals.items()},
     }
-    if findings.prior_monthly_spend:
-        delta = findings.trailing_monthly_spend - findings.prior_monthly_spend
+    # Month over month compares two full months, never the trailing mean against a month.
+    if findings.prior_monthly_spend and findings.last_monthly_spend is not None:
+        delta = findings.last_monthly_spend - findings.prior_monthly_spend
         facts["change_vs_prior_month"] = round(delta, 2)
         facts["change_vs_prior_month_pct"] = round(delta / findings.prior_monthly_spend * 100, 2)
     return facts

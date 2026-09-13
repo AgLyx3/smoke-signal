@@ -103,6 +103,7 @@ def sample_findings() -> Findings:
         window_start=date(2026, 3, 1),
         window_end=date(2026, 8, 31),
         trailing_monthly_spend=SPEND,
+        last_monthly_spend=SPEND,
         prior_monthly_spend=482_000.0,
         headcount_proxy=46,
         findings=findings,

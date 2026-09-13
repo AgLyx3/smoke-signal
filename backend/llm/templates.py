@@ -11,9 +11,10 @@ from llm.facts import money, money_k, pct, signed_money_k
 from models import AlertText, ReportItemText
 
 SOURCE_PHRASE = {
-    "taxonomy": "inferred from our vendor taxonomy",
+    "taxonomy": "from our vendor taxonomy",
     "llm": "inferred by Claude from the charges",
     "user": "confirmed by you",
+    "default": "not yet classified, treated as fixed until you confirm",
 }
 
 UNKNOWN = {
@@ -165,18 +166,21 @@ def report_item(f: dict[str, Any]) -> ReportItemText:
 
 
 def report_intro(w: dict[str, Any], n_attention: int, n_worth: int) -> str:
-    spend = money(w["trailing_monthly_spend"])
-    if w.get("prior_monthly_spend"):
+    trailing = money(w["trailing_monthly_spend"])
+    if w.get("last_monthly_spend") is not None and "change_vs_prior_month" in w:
         delta = w["change_vs_prior_month"]
         direction = "up" if delta > 0 else "down"
-        vs = (
-            f", {direction} {money(abs(delta))} ({pct(abs(w['change_vs_prior_month_pct']))}) "
-            f"from {money(w['prior_monthly_spend'])} the month before"
+        month = (
+            f"The last full month closed at {money(w['last_monthly_spend'])}, {direction} {money(abs(delta))} "
+            f"({pct(abs(w['change_vs_prior_month_pct']))}) from {money(w['prior_monthly_spend'])} the month before; "
+            f"the trailing three-month average is {trailing}. "
         )
+    elif w.get("last_monthly_spend") is not None:
+        month = f"The last full month closed at {money(w['last_monthly_spend'])}; the trailing three-month average is {trailing}. "
     else:
-        vs = ""
+        month = f"Trailing monthly spend is {trailing}. "
     return (
-        f"Spend report for {w['window_start']} to {w['window_end']}. Trailing monthly spend is {spend}{vs}. "
+        f"Spend report for {w['window_start']} to {w['window_end']}. {month}"
         f"{w['headcount_proxy_cardholders']} distinct cardholders in the window, our headcount proxy, across "
         f"{w['vendor_count']} vendors. {n_attention} items need attention and {n_worth} are worth knowing."
     )

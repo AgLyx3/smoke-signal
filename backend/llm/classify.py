@@ -140,20 +140,32 @@ def parse_classifications(payload: dict[str, Any] | None, facts: list[VendorFact
     return out
 
 
+# Per-process cache so reruns (an override, a threshold change) make no further calls.
+_CACHE: dict[str, Classification] = {}
+
+
+def clear_cache() -> None:
+    _CACHE.clear()
+
+
 def classify_unknown(facts: list[VendorFacts], client: LLMClient | None = None) -> dict[str, Classification]:
-    """Classify all unknown vendors in one call. Never raises."""
-    if not facts:
-        return {}
-    try:
-        client = client or get_client()
-        message = create_message(
-            client,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": _user_message(facts)}],
-            tools=[CLASSIFY_TOOL],
-            tool_choice={"type": "tool", "name": TOOL_NAME, "disable_parallel_tool_use": True},
-        )
-    except Exception as e:  # noqa: BLE001 - the pipeline must keep running without Claude
-        log.warning("classify: call failed (%s: %s), falling back for %d vendors", type(e).__name__, e, len(facts))
-        return {f.vendor: FALLBACK for f in facts}
-    return parse_classifications(tool_input(message, TOOL_NAME), facts)
+    """Classify the uncached vendors in one call. Never raises. If the call itself fails (no key,
+    API error, budget) the uncached vendors are left OUT of the result, so the pipeline keeps them
+    at their default cost type and still asks the user; only a bad entry inside a successful
+    response falls back to FALLBACK."""
+    todo = [f for f in facts if f.vendor not in _CACHE]
+    if todo:
+        try:
+            client = client or get_client()
+            message = create_message(
+                client,
+                system=SYSTEM_PROMPT,
+                messages=[{"role": "user", "content": _user_message(todo)}],
+                tools=[CLASSIFY_TOOL],
+                tool_choice={"type": "tool", "name": TOOL_NAME, "disable_parallel_tool_use": True},
+            )
+        except Exception as e:  # noqa: BLE001 - the pipeline must keep running without Claude
+            log.warning("classify: call failed (%s: %s); %d vendors stay unclassified", type(e).__name__, e, len(todo))
+        else:
+            _CACHE.update(parse_classifications(tool_input(message, TOOL_NAME), todo))
+    return {f.vendor: _CACHE[f.vendor] for f in facts if f.vendor in _CACHE}

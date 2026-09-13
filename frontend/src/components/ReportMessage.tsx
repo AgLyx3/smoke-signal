@@ -1,4 +1,4 @@
-import { KIND_LABEL, longDate, money, moneyCompact, monthYear, pct, shortDate } from "@/lib/format";
+import { KIND_LABEL, issueKey, longDate, money, moneyCompact, monthYear, pct, shortDate } from "@/lib/format";
 import type { Finding, Findings, ReportText } from "@/lib/types";
 
 const COLLAPSE_OVER = 5;
@@ -71,7 +71,9 @@ export function ReportMessage({
   }
 
   const items = findings.findings.filter((f) => f.route !== "ignore");
-  const isAttention = (f: Finding) => f.route === "alert" || Boolean(f.escalation_of) || openSince.has(f.id);
+  const narratedAttention = new Set((report?.needs_attention ?? []).map((t) => t.finding_id));
+  const isAttention = (f: Finding) =>
+    f.route === "alert" || Boolean(f.escalation_of) || openSince.has(issueKey(f.id)) || narratedAttention.has(f.id);
   const attention = items.filter(isAttention).sort(byAbsImpactDesc);
 
   const groups = new Map<string, Finding[]>();
@@ -104,7 +106,7 @@ export function ReportMessage({
         ) : (
           <ul className="mt-1 divide-y divide-slack-border/60">
             {attention.map((f) => (
-              <Item key={f.id} f={f} text={textById.get(f.id) ?? fallbackText(f)} openSince={openSince.get(f.id)} />
+              <Item key={f.id} f={f} text={textById.get(f.id) ?? fallbackText(f)} openSince={openSince.get(issueKey(f.id))} />
             ))}
           </ul>
         )}

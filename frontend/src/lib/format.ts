@@ -28,9 +28,18 @@ export function moneyCompact(
 /** Fraction → percent string. `pct(0.02)` → `2%`, `pct(0.0199, 1)` → `2.0%`. */
 export function pct(frac: number, digits = 0, sign = false): string {
   const v = Math.abs(frac) * 100;
-  const body = `${v.toFixed(digits)}%`;
-  const prefix = frac < 0 ? MINUS : sign && frac > 0 ? "+" : "";
+  const rounded = v.toFixed(digits);
+  // A real but tiny share reads as "<0.1%", never as "0.0%".
+  const tiny = v > 0 && Number(rounded) === 0;
+  const body = tiny ? `<${(1 / 10 ** digits).toFixed(digits)}%` : `${rounded}%`;
+  const prefix = frac < 0 ? MINUS : sign && frac > 0 && !tiny ? "+" : "";
   return `${prefix}${body}`;
+}
+
+/** Finding ids are `<vendor-slug>:<kind>:<as-of date>`; the same problem seen at a later stage
+ *  gets a new date, so open issues are matched on the first two segments. */
+export function issueKey(findingId: string): string {
+  return findingId.split(":").slice(0, 2).join(":");
 }
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -93,6 +102,7 @@ export const SOURCE_LABEL: Record<CostTypeSource, string> = {
   taxonomy: "Taxonomy",
   llm: "Inferred (LLM)",
   user: "Confirmed by you",
+  default: "Unclassified (default)",
 };
 
 export const KIND_LABEL: Record<Kind, string> = {

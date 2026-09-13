@@ -9,10 +9,10 @@ import anthropic
 
 MODEL = "claude-sonnet-5"
 MAX_TOKENS = 8192
-TIMEOUT_S = 25.0
-MAX_RETRIES = 1
+TIMEOUT_S = 20.0
+MAX_RETRIES = 0  # a slow call falls through to templates rather than doubling the wait on stage
 API_KEY_ENV = "ANTHROPIC_API_KEY"
-MAX_CALLS_PER_PROCESS = 20
+MAX_CALLS_PER_PROCESS = 60
 
 
 class MissingAPIKeyError(RuntimeError):

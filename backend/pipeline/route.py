@@ -8,6 +8,10 @@ from models import DEFAULT_CONFIG, Config, OpenIssue, TypeThreshold
 ESCALATION_GROWTH = 0.5
 NEVER_ALERT_KINDS = {"renewal", "spike", "stopped"}
 CONFIRMED_SOURCES = {"taxonomy", "user"}
+# Always worth a report line on a vendor we understand, however small: price creep, seats
+# outgrowing headcount, a renewal date. Everything else must clear the report floor.
+ALWAYS_REPORT_KINDS = {"price_change", "per_head", "renewal"}
+CLASSIFIED_SOURCES = CONFIRMED_SOURCES | {"llm"}
 
 
 @dataclass(frozen=True)
@@ -69,6 +73,11 @@ def route_candidate(
                 escalation_of = worst.id
             else:
                 route = "report"
+
+    if route == "report":
+        always = kind in ALWAYS_REPORT_KINDS and cost_type_source in CLASSIFIED_SOURCES
+        if not always and abs(impact) < config.report_floor_pct * trailing_monthly_spend:
+            route = "ignore"
 
     ask = route == "alert" and cost_type_source not in CONFIRMED_SOURCES
     return Routing(route, impact, threshold, escalation_of, ask)

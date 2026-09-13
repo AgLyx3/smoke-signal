@@ -40,3 +40,14 @@ including a row count that could not distinguish a limit of 25 from 300 because 
 13 rows, and a substring check that stayed green after the clause it guarded was deleted. Four of
 the five were caught by `/code-review`, not the author. Treat "my new check passed first try" as
 a smell.
+
+## 3. A test run piped through `tail` has no exit code — gate commits on the real one
+
+**Rule:** Never chain `pytest ... | tail -n && git commit`. The pipeline's status is `tail`'s, so
+a red suite commits. Run the tests in their own command, or `set -o pipefail` and check
+`$pipestatus`, and read the summary line before the commit command runs.
+
+**Earned by:** the `llm` merge (2026-09-12) was committed and pushed to `main` with
+`test_unknown_vendor_defaults_until_hook_or_override` failing (104 passed, 1 failed) because the
+merge changed `Classification.confidence` to a Literal and a pipeline test still passed a float.
+The failure was on screen; the `&&` chain never saw it.

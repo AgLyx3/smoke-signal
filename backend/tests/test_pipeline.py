@@ -231,7 +231,7 @@ def test_fixed_vendor_with_no_stable_price_has_no_baseline():
 
 def test_new_unknown_vendor_material_alerts_and_asks_cost_type():
     r = run(company() + monthly("PINECONE SYSTEMS", {7: 1000, 8: 2400}))
-    (f,) = find(r, "PINECONE SYSTEMS")
+    (f,) = find(r, "Pinecone Systems")
     assert f.kind == "new_vendor" and f.route == "alert"
     assert f.impact_monthly == pytest.approx(2400) and f.baseline.expected_monthly == 0
     assert f.cost_type_source == "default" and f.ask_cost_type is True
@@ -240,17 +240,17 @@ def test_new_unknown_vendor_material_alerts_and_asks_cost_type():
 
 def test_new_vendor_small_reports_without_ask():
     r = run(company() + monthly("PINECONE SYSTEMS", {7: 100, 8: 240}))
-    (f,) = find(r, "PINECONE SYSTEMS")
+    (f,) = find(r, "Pinecone Systems")
     assert f.kind == "new_vendor" and f.route == "report" and f.ask_cost_type is False
 
 
 def test_new_vendor_only_fires_the_month_the_second_charge_lands():
     # Second charge landed in July; an August charge must not re-raise "new vendor".
     r = run(company() + monthly("PINECONE SYSTEMS", {6: 1000, 7: 2400, 8: 2400}))
-    assert find(r, "PINECONE SYSTEMS", "new_vendor") == []
-    assert next(v for v in r.vendors if v.vendor == "PINECONE SYSTEMS").monthly_spend == 2400
+    assert find(r, "Pinecone Systems", "new_vendor") == []
+    assert next(v for v in r.vendors if v.vendor == "Pinecone Systems").monthly_spend == 2400
     r = run(company() + monthly("PINECONE SYSTEMS", {8: 2400}))
-    assert find(r, "PINECONE SYSTEMS", "new_vendor") == []
+    assert find(r, "Pinecone Systems", "new_vendor") == []
 
 
 # --- stopped ------------------------------------------------------------------------------------
@@ -280,11 +280,11 @@ def test_stopped_material_vendor_still_only_reports():
 
 def test_one_off_spike_reverts_and_never_alerts():
     rows = company() + [tx(date(2026, 5, 12), 8000, "GRAND HOTEL OFFSITE", user="u03")]
-    assert find(run(rows), "GRAND HOTEL OFFSITE") == []
-    (f,) = find(run(rows, as_of=date(2026, 5, 31)), "GRAND HOTEL OFFSITE")
+    assert find(run(rows), "Grand Hotel Offsite") == []
+    (f,) = find(run(rows, as_of=date(2026, 5, 31)), "Grand Hotel Offsite")
     assert f.kind == "spike" and f.route == "report" and f.impact_monthly == 8000
     assert f.cardholders == ["U03"]
-    assert find(run(company() + [tx(date(2026, 8, 12), 40, "CORNER CAFE")]), "CORNER CAFE") == []
+    assert find(run(company() + [tx(date(2026, 8, 12), 40, "CORNER CAFE")]), "Corner Cafe") == []
 
 
 # --- headcount ----------------------------------------------------------------------------------
@@ -421,25 +421,25 @@ def test_fees_are_context_only():
 
 def test_unknown_vendor_defaults_until_hook_or_override():
     rows = company() + monthly("PINECONE SYSTEMS", {6: 800, 7: 1000, 8: 2400}, memo="vector db")
-    v = next(v for v in run(rows).vendors if v.vendor == "PINECONE SYSTEMS")
+    v = next(v for v in run(rows).vendors if v.vendor == "Pinecone Systems")
     assert (v.cost_type, v.category, v.cost_type_source) == ("fixed", "Software", "default")
 
     seen = {}
 
     def hook(facts):
         seen.update({f.vendor: f for f in facts})
-        return {"PINECONE SYSTEMS": Classification(cost_type="usage", category="AI infrastructure", confidence=0.9)}
+        return {"Pinecone Systems": Classification(cost_type="usage", category="AI infrastructure", confidence="high")}
 
     r = run(rows, classify_unknown=hook)
-    v = next(v for v in r.vendors if v.vendor == "PINECONE SYSTEMS")
+    v = next(v for v in r.vendors if v.vendor == "Pinecone Systems")
     assert (v.cost_type, v.category, v.cost_type_source) == ("usage", "AI infrastructure", "llm")
-    facts = seen["PINECONE SYSTEMS"]
+    facts = seen["Pinecone Systems"]
     assert facts.monthly_amounts == {"2026-06": 800, "2026-07": 1000, "2026-08": 2400}
     assert facts.cadence == "monthly" and facts.sample_memos == ["vector db"]
-    assert "Anthropic" not in seen and "UBER TRIP" in seen  # only unknown recurring vendors reach the hook
+    assert "Anthropic" not in seen and "Uber Trip" in seen  # only unknown recurring vendors reach the hook
 
     r = run(rows, classify_unknown=hook, overrides=[Override(vendor="pinecone systems", cost_type="headcount")])
-    v = next(v for v in r.vendors if v.vendor == "PINECONE SYSTEMS")
+    v = next(v for v in r.vendors if v.vendor == "Pinecone Systems")
     assert (v.cost_type, v.cost_type_source) == ("headcount", "user")
 
 
@@ -486,7 +486,7 @@ def test_findings_summary_fields():
     assert r.headcount_proxy == 10
     assert r.trailing_monthly_spend == pytest.approx(100_000 + 10_000 + 2_000 + 250, rel=0.02)
     assert r.category_totals["Payroll"] == 100_000
-    assert "UBER TRIP" in {v.vendor for v in r.vendors}  # unknown vendor keyed by taxonomy.normalize
+    assert "Uber Trip" in {v.vendor for v in r.vendors}  # unknown vendor keyed by taxonomy.normalize
     names = [v.vendor for v in r.vendors]
     assert names[0] == "Gusto" and names.index("Datadog") < names.index("Anthropic")
 

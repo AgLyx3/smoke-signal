@@ -12,6 +12,7 @@ from anthropic import types as at
 
 from llm import client as llm_client
 from llm import templates
+import llm.classify as classify_mod
 from llm.classify import CATEGORIES, FALLBACK, TOOL_NAME, classify_unknown
 from llm.facts import allowed_numbers, build_facts, extract_numbers, unsupported_numbers
 from llm.narrate import ALERTS_TOOL_NAME, REPORT_TOOL_NAME, narrate, narrate_result, template_response
@@ -72,8 +73,10 @@ class FakeClient:
 @pytest.fixture(autouse=True)
 def _fresh_budget():
     llm_client.reset_budget()
+    classify_mod.clear_cache()
     yield
     llm_client.reset_budget()
+    classify_mod.clear_cache()
 
 
 VENDORS = ["Pinecone", "Datadog", "Twilio", "NIMBLEWAY LTD", "Gusto"]
@@ -164,17 +167,34 @@ def test_classify_no_tool_block_falls_back():
     assert all(c == FALLBACK for c in out.values())
 
 
-def test_classify_api_error_falls_back_without_raising():
+def test_classify_api_error_leaves_vendors_unclassified_without_raising():
     err = anthropic.APIConnectionError(request=httpx.Request("POST", "https://api.anthropic.com/v1/messages"))
     fake = FakeClient(err)
     out = classify_unknown(vendor_facts(), client=fake)
-    assert all(c == FALLBACK for c in out.values())
+    assert out == {}  # not FALLBACK: the pipeline must keep these at "default" and still ask
 
 
-def test_classify_missing_key_falls_back(monkeypatch):
+def test_classify_missing_key_leaves_vendors_unclassified(monkeypatch):
     monkeypatch.delenv(llm_client.API_KEY_ENV, raising=False)
     out = classify_unknown(vendor_facts())  # no client injected -> get_client() -> MissingAPIKeyError
-    assert all(c == FALLBACK for c in out.values())
+    assert out == {}
+
+
+def test_classify_caches_per_vendor_so_reruns_make_no_call():
+    fake = FakeClient(tool_message(TOOL_NAME, good_classification_payload()))
+    first = classify_unknown(vendor_facts(), client=fake)
+    second = classify_unknown(vendor_facts(), client=fake)
+    assert first == second and len(first) == 5
+    assert len(fake.calls) == 1
+    # a new vendor triggers exactly one more call, for that vendor only
+    extra = vendor_facts()[:1].copy()
+    extra[0] = extra[0].model_copy(update={"vendor": "Brand New Co"})
+    fake2 = FakeClient(tool_message(TOOL_NAME, {"classifications": [
+        {"vendor": "Brand New Co", "cost_type": "fixed", "category": "Software", "confidence": "low"}]}))
+    third = classify_unknown(vendor_facts() + extra, client=fake2)
+    assert len(third) == 6 and len(fake2.calls) == 1
+    assert "Brand New Co" in fake2.calls[0]["messages"][0]["content"]
+    assert "Pinecone" not in fake2.calls[0]["messages"][0]["content"]
 
 
 def test_classify_empty_input_makes_no_call():
@@ -201,7 +221,7 @@ def test_get_client_never_echoes_key(monkeypatch):
 
 
 def test_budget_guard_raises_on_n_plus_one():
-    fake = FakeClient(*[tool_message(TOOL_NAME, {"classifications": []}) for _ in range(25)])
+    fake = FakeClient(*[tool_message(TOOL_NAME, {"classifications": []}) for _ in range(llm_client.MAX_CALLS_PER_PROCESS + 5)])
     for _ in range(llm_client.MAX_CALLS_PER_PROCESS):
         llm_client.create_message(fake, messages=[])
     assert llm_client.calls_made() == llm_client.MAX_CALLS_PER_PROCESS
@@ -317,7 +337,7 @@ def test_template_alert_headline_shape():
     a = templates.alert_text(facts["findings"][0])
     assert a.headline == "+$10.0K/mo · 2.0% of monthly spend — Anthropic is running well above its trend"
     assert "$26,500" in a.what_moved and "$16,500" in a.what_moved
-    assert "volume 100.0%" in a.why and "Confidence high" in a.why and "inferred" in a.why
+    assert "volume 100.0%" in a.why and "Confidence high" in a.why and "vendor taxonomy" in a.why
     assert "provider key" in a.why
 
 
