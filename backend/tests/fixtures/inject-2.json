@@ -1,0 +1,6 @@
+{
+  "transactions": [
+    {"id": "j1", "amount": {"amount": -5000000, "currency": "USD"}, "counterparty_name": "Gusto", "transaction_type": "ach_debit", "status": "settled", "initiated_at": "2026-09-15T10:00:00Z", "posted_at": "2026-09-15T10:00:00Z"},
+    {"id": "j2", "amount": {"amount": 2500, "currency": "USD"}, "counterparty_name": "Figma", "transaction_type": "card_refund", "status": "settled", "initiated_at": "2026-09-20T10:00:00Z", "posted_at": "2026-09-21T00:00:00Z", "card_id": "c1", "user_id": "u1", "user_full_name": "Ada Finance"}
+  ]
+}

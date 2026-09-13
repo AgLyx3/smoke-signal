@@ -1,0 +1,11 @@
+{
+  "transactions": [
+    {"id": "h1", "amount": {"amount": -150000, "currency": "USD"}, "counterparty_name": "ANTHROPIC* API", "transaction_type": "card_debit", "status": "settled", "initiated_at": "2026-07-03T10:00:00Z", "posted_at": "2026-07-04T00:00:00Z", "card_id": "c1", "card_name": "API & Subscriptions", "user_id": "u1", "user_full_name": "Ada Finance"},
+    {"id": "h2", "amount": {"amount": -172500, "currency": "USD"}, "counterparty_name": "Anthropic PBC", "transaction_type": "card_debit", "status": "settled", "initiated_at": "2026-08-03T10:00:00Z", "posted_at": "2026-08-04T00:00:00Z", "card_id": "c1", "card_name": "API & Subscriptions", "user_id": "u1", "user_full_name": "Ada Finance", "memo": "Claude API usage"},
+    {"id": "h3", "amount": {"amount": -5000000, "currency": "USD"}, "counterparty_name": "Gusto", "transaction_type": "ach_debit", "status": "settled", "initiated_at": "2026-08-15T10:00:00Z", "posted_at": "2026-08-15T10:00:00Z", "card_id": null, "card_name": null, "user_id": null, "user_full_name": null},
+    {"id": "h4", "amount": {"amount": -2500000, "currency": "USD"}, "counterparty_name": "Rho", "transaction_type": "credit_repayment", "status": "settled", "initiated_at": "2026-08-20T10:00:00Z", "posted_at": "2026-08-20T10:00:00Z"},
+    {"id": "h5", "amount": {"amount": -1234, "currency": "USD"}, "counterparty_name": "Future Rail", "transaction_type": "hyperloop_debit", "status": "settled", "initiated_at": "2026-08-21T10:00:00Z", "posted_at": "2026-08-21T10:00:00Z"},
+    {"id": "h6", "amount": {"amount": -9900, "currency": "USD"}, "counterparty_name": "Figma", "transaction_type": "card_debit", "status": "pending", "initiated_at": "2026-08-30T10:00:00Z", "posted_at": null, "card_id": "c1", "card_name": "API & Subscriptions", "user_id": "u1", "user_full_name": "Ada Finance"}
+  ],
+  "page": {"next_page_token": null}
+}
