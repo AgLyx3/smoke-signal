@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 Stage = Literal["history", "inject-1", "inject-2"]
 CostType = Literal["usage", "fixed", "headcount", "annual", "payroll"]
-CostTypeSource = Literal["taxonomy", "llm", "user"]
+CostTypeSource = Literal["taxonomy", "llm", "user", "default"]  # default = unknown vendor, no hook result
 Cadence = Literal["semi-monthly", "monthly", "annual", "irregular"]
 Kind = Literal[
     "growth_break",  # usage vendor off its own trajectory
@@ -77,6 +77,7 @@ class Baseline(BaseModel):
     sigma: float | None = Field(default=None, description="Std dev of the vendor's own residuals")
     last_price: float | None = None
     cost_per_head: float | None = None
+    headcount_proxy: int | None = Field(default=None, description="Cardholder proxy used for the evaluated month")
 
 
 class Finding(BaseModel):
@@ -96,6 +97,25 @@ class Finding(BaseModel):
     ask_cost_type: bool = Field(default=False, description="Ask the user to confirm cost_type before showing")
     escalation_of: str | None = Field(default=None, description="OpenIssue id this re-alert escalates")
     cardholders: list[str] = []
+    month: str | None = Field(default=None, description="Evaluated calendar month, YYYY-MM")
+
+
+class VendorFacts(BaseModel):
+    """What the classifier hook sees for an unknown vendor: facts only, no decision."""
+
+    vendor: str
+    monthly_amounts: dict[str, float] = Field(description="YYYY-MM -> settled net spend")
+    cadence: Cadence
+    charge_count: int
+    sample_descriptors: list[str] = Field(default=[], description="Raw counterparty_name variants")
+    sample_memos: list[str] = []
+    sample_card_names: list[str] = []
+
+
+class Classification(BaseModel):
+    cost_type: CostType
+    category: str
+    confidence: float = Field(ge=0, le=1)
 
 
 class VendorSummary(BaseModel):

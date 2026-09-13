@@ -1,0 +1,6 @@
+{
+  "transactions": [
+    {"id": "i1", "amount": {"amount": -276000, "currency": "USD"}, "counterparty_name": "ANTHROPIC* API", "transaction_type": "card_debit", "status": "settled", "initiated_at": "2026-09-03T10:00:00Z", "posted_at": "2026-09-04T00:00:00Z", "card_id": "c1", "card_name": "API & Subscriptions", "user_id": "u1", "user_full_name": "Ada Finance"},
+    {"id": "h6", "amount": {"amount": -9900, "currency": "USD"}, "counterparty_name": "Figma", "transaction_type": "card_debit", "status": "settled", "initiated_at": "2026-08-30T10:00:00Z", "posted_at": "2026-09-01T00:00:00Z", "card_id": "c1", "card_name": "API & Subscriptions", "user_id": "u1", "user_full_name": "Ada Finance"}
+  ]
+}
