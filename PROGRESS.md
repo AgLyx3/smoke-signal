@@ -112,6 +112,17 @@ or `FEATURES.json`; the integrator reviews, re-runs their tests, records evidenc
   (grammar-constrained) decoding was the cost, and it scales with output size. Removed `strict`
   from the classify and both narrate tools; Pydantic validation and the grounding check were
   already the real guard. Smoke after: classify 2.6 s, alerts 5.4 s, report 8.1 s, all grounded.
-- **Next:** merge (ask), redeploy (ask), e2e on prod, confirm Pinecone arrives `usage/llm` with the
-  ask reading "scales with usage. Right?", and `/api/run` well under 10 s. Before the demo: open
-  the prod URL once to warm it, then Reset demo.
+- Merged and deployed (`70e049e`, 2026-09-13). Production verified: `POST /api/run inject-1`
+  5.1 s cold with live classification (10 vendors classified; Pinecone Systems → `usage/llm`,
+  "Data & tooling", ask shown), 0.57 s warm; `/api/narrate` → `X-Narration: claude` in 5.7 s;
+  Playwright e2e 2 passed in 1.0 min. Polish worktree removed; no worktrees remain.
+
+## Demo runbook
+
+1. Open https://rho-cost-signal.vercel.app once a few minutes before presenting (warms the
+   functions and fills the classification cache); `/settings` → Reset demo.
+2. Load history (~7 s: pipeline + report narration) → New charges (~11 s: classification, two
+   alerts, Claude prose) → answer the Pinecone question → Month closes (~9 s).
+3. If Claude is slow or down, cards still render from templates (`X-Narration: template`); the
+   detection never depends on it.
+4. `cd frontend && npm run test:e2e` re-checks the whole flow on production in about a minute.
